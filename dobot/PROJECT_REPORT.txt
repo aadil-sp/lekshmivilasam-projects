@@ -1,0 +1,44 @@
+========================================================================================
+KERALA STATE SASTHROLSAVAM (SASTHRAMELA) - ROBOTICS & AI PROJECT REPORT
+PROJECT: Intelligent 4-DOF Articulated Robotic Arm with Computer Vision Sorting
+HARDWARE: Dobot Magician Lite + Dobot Magic Box (MicroPython ARM Cortex-M4)
+========================================================================================
+
+1. PROJECT SUMMARY
+------------------
+The Dobot Magician Lite is a high-precision 4-Axis articulated educational and industrial
+robot arm offering +-0.2mm repeatability, 250g payload capacity, and 340mm reach radius.
+Paired with the Magic Box MicroPython controller, the robot performs autonomous visual
+inspection, color classification, and coordinate-mapped pick-and-place manipulation.
+
+2. SCIENTIFIC & MATHEMATICAL PRINCIPLES
+---------------------------------------
+A. Inverse Kinematics:
+   Converts target Cartesian position (X, Y, Z, R) into motor joint angles (Theta 1 to 4)
+   using Law of Cosines and geometric arm link decomposition.
+
+B. Perspective Homography Matrix (Vision Calibration):
+   Transforms camera pixel coordinates (u, v) into robot base frame coordinates (X, Y):
+   [X_robot, Y_robot, 1]^T = H * [u_pixel, v_pixel, 1]^T
+
+C. PTP Motion Modes:
+   - JUMP Mode: Trajectory with automatic vertical ascent, horizontal transit, and descent
+   - MOVL Mode: Straight-line Cartesian linear path
+   - MOVJ Mode: Coordinated multi-joint point-to-point motion
+
+3. HARDWARE & PORTS
+-------------------
+- Serial Interface:   /dev/cu.usbmodem549A30D515392 (115200 Baud)
+- Flash FileSystem:   /Volumes/NO NAME 1 (MicroPython Flash Drive)
+- Core Runtime:       dType, mb, mgl, pyb, _thread
+- End Effectors:      Pneumatic Soft Gripper, Vacuum Suction Cup, Pen Holder
+
+4. PROJECT APPLICATIONS
+-----------------------
+1. AI Color & Shape Sorting (Medicine, Agriculture, Waste)
+2. Precision Calligraphy & PCB Tracing
+3. Real-Time Teleoperation & Camera Gesture Control
+
+========================================================================================
+Kerala State Sasthrolsavam &bull; Lekshmivilasam Robotics Division
+========================================================================================

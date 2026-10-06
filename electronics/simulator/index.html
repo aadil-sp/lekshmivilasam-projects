@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>0.96" Monochrome OLED & Captive Portal Simulator - Kerala Sasthramela</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+    
+    .oled-font {
+      font-family: 'VT323', 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Monochrome Cyan OLED Glow */
+    .oled-screen {
+      background-color: #03080d;
+      color: #00f0ff;
+      text-shadow: 0 0 3px rgba(0, 240, 255, 0.7), 0 0 8px rgba(0, 240, 255, 0.3);
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 240, 255, 0.15);
+      border: 3px solid #111a24;
+      image-rendering: pixelated;
+    }
+
+    .oled-pixel-grid {
+      background-image: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 3px 3px;
+    }
+
+    /* Tactile Push Button Styling */
+    .tactile-btn {
+      background: radial-gradient(circle at 30% 30%, #3f3f46, #18181b);
+      box-shadow: 0 6px 0 #09090b, 0 8px 10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+      transition: all 0.08s ease;
+    }
+    .tactile-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #09090b, 0 3px 6px rgba(0,0,0,0.4);
+    }
+
+    .buzzer-glow {
+      animation: buzzer-pulse 0.5s infinite alternate;
+    }
+    @keyframes buzzer-pulse {
+      0% { box-shadow: 0 0 5px #ef4444; background-color: #ef4444; }
+      100% { box-shadow: 0 0 20px #ef4444, 0 0 35px #ef4444; background-color: #ff8888; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-800 mb-8 gap-4">
+      <div>
+        <div class="inline-block px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-2">
+          KERALA STATE SASTHROLSAVAM &bull; ELECTRONICS PROJECT
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+          Smart Bio-Band: 0.96" OLED & Captive Portal Simulator
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Dual-Button SSD1306 Monochrome Display Navigation with Live Sensor Stimulation & Web Dashboard
+        </p>
+      </div>
+
+      <!-- Quick Preset Controls -->
+      <div class="flex flex-wrap gap-2">
+        <button onclick="setPreset('normal')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30">
+          Normal State
+        </button>
+        <button onclick="setPreset('tachycardia')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30">
+          Tachycardia
+        </button>
+        <button onclick="setPreset('hypoxia')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30">
+          Hypoxia (Low SpO2)
+        </button>
+        <button onclick="setPreset('stress')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30">
+          High GSR Stress
+        </button>
+        <button onclick="setPreset('fall')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30">
+          Simulate Fall!
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Workspace: 3 Columns (Device | Sensor Controls | Mobile Captive Portal) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- COLUMN 1: Physical Wearable Device with 0.96" OLED & 2 Buttons (5 Cols) -->
+      <div class="lg:col-span-5 flex flex-col items-center">
+        
+        <div class="w-full max-w-sm bg-gradient-to-b from-slate-900 to-zinc-900 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl relative">
+          
+          <!-- Enclosure Header / Branding -->
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">LEKSHMIVILASAM LABS</span>
+            <div class="flex items-center gap-2">
+              <div id="buzzerLed" class="w-3 h-3 rounded-full bg-slate-700 border border-slate-600 transition-all"></div>
+              <span class="text-[9px] text-slate-400 uppercase">BUZZER</span>
+            </div>
+          </div>
+
+          <!-- 0.96" Monochrome (Single-Color Cyan) OLED Screen Bezel -->
+          <div class="bg-black p-4 rounded-xl border-4 border-slate-950 shadow-inner mb-6 relative">
+            <div class="text-[9px] text-slate-600 font-mono text-center mb-1">0.96" 128x64 MONOCHROME OLED (SSD1306)</div>
+            
+            <!-- Actual 128x64 OLED Screen Area -->
+            <div id="oledScreen" class="oled-screen oled-pixel-grid oled-font h-48 w-full rounded p-3 flex flex-col justify-between select-none">
+              <!-- Content dynamically rendered by JS -->
+            </div>
+          </div>
+
+          <!-- 2 Physical Push Buttons Below Display -->
+          <div class="mt-2 bg-slate-950/70 rounded-2xl p-4 border border-slate-800">
+            <div class="text-center text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-3">
+              Hardware Tactile Navigation
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Button 1: Next / Scroll -->
+              <div class="flex flex-col items-center">
+                <button id="btnScroll" onclick="onButtonScroll()" class="tactile-btn w-16 h-16 rounded-full flex items-center justify-center text-cyan-400 border border-slate-600 hover:border-cyan-400 transition-colors">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                  </svg>
+                </button>
+                <span class="text-[11px] font-bold text-slate-300 mt-2 uppercase tracking-wide">BTN 1: SCROLL</span>
+                <span class="text-[9px] text-slate-500 font-mono">GPIO 9 (Next Screen)</span>
+              </div>
+
+              <!-- Button 2: Select / Action -->
+              <div class="flex flex-col items-center">
+                <button id="btnSelect" onclick="onButtonSelect()" class="tactile-btn w-16 h-16 rounded-full flex items-center justify-center text-emerald-400 border border-slate-600 hover:border-emerald-400 transition-colors">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </button>
+                <span class="text-[11px] font-bold text-slate-300 mt-2 uppercase tracking-wide">BTN 2: SELECT</span>
+                <span class="text-[9px] text-slate-500 font-mono">GPIO 8 (Mute / Reset)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex justify-between items-center text-[10px] text-slate-500 font-mono px-2">
+            <span>MCU: ESP32-C3</span>
+            <span>BAT: 3.7V LiPo (TP4056)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN 2: Live Sensor Simulation Controls (3 Cols) -->
+      <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4">
+        <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          Sensor Stimulation Rack
+        </h2>
+
+        <!-- Heart Rate Slider -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-400">Heart Rate (MAX30102)</span>
+            <span class="font-bold text-cyan-400"><span id="ctrlHrVal">75</span> BPM</span>
+          </div>
+          <input type="range" min="40" max="180" value="75" id="ctrlHr" oninput="updateSensorValues()" class="w-full accent-cyan-400">
+        </div>
+
+        <!-- SpO2 Slider -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-400">Blood Oxygen (SpO2)</span>
+            <span class="font-bold text-cyan-400"><span id="ctrlSpo2Val">98</span>%</span>
+          </div>
+          <input type="range" min="70" max="100" value="98" id="ctrlSpo2" oninput="updateSensorValues()" class="w-full accent-cyan-400">
+        </div>
+
+        <!-- Temperature Slider -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-400">Body Temp (DS18B20)</span>
+            <span class="font-bold text-cyan-400"><span id="ctrlTempVal">36.6</span> °C</span>
+          </div>
+          <input type="range" min="34.0" max="42.0" step="0.1" value="36.6" id="ctrlTemp" oninput="updateSensorValues()" class="w-full accent-cyan-400">
+        </div>
+
+        <!-- GSR Stress Slider -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-400">GSR Skin Conductance</span>
+            <span class="font-bold text-cyan-400"><span id="ctrlGsrVal">8.3</span> µS</span>
+          </div>
+          <input type="range" min="1.0" max="25.0" step="0.5" value="8.3" id="ctrlGsr" oninput="updateSensorValues()" class="w-full accent-cyan-400">
+        </div>
+
+        <!-- MPU6050 Motion / Fall Trigger -->
+        <div class="pt-2 border-t border-slate-800">
+          <div class="text-xs text-slate-400 mb-2">MPU6050 6-Axis Kinematics</div>
+          <button onclick="triggerFallEvent()" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition-transform active:scale-95 shadow-lg shadow-red-950/50">
+            ⚡ SIMULATE MECHANICAL FALL
+          </button>
+        </div>
+
+        <!-- Battery Level Slider -->
+        <div class="pt-2 border-t border-slate-800">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-400">Battery Level</span>
+            <span class="font-bold text-emerald-400"><span id="ctrlBatVal">90</span>%</span>
+          </div>
+          <input type="range" min="5" max="100" value="90" id="ctrlBat" oninput="updateSensorValues()" class="w-full accent-emerald-400">
+        </div>
+      </div>
+
+      <!-- COLUMN 3: Smartphone Captive Portal Web Dashboard (4 Cols) -->
+      <div class="lg:col-span-4 flex flex-col items-center">
+        <div class="w-full max-w-xs bg-slate-900 border-4 border-slate-800 rounded-[36px] p-3 shadow-2xl relative overflow-hidden">
+          
+          <!-- Phone Speaker & Camera Notch -->
+          <div class="w-24 h-4 bg-slate-950 mx-auto rounded-b-xl mb-2 flex items-center justify-center">
+            <div class="w-8 h-1 bg-slate-800 rounded-full"></div>
+          </div>
+
+          <!-- Browser Address Bar (Simulating Captive Portal) -->
+          <div class="bg-slate-950/80 rounded-xl px-3 py-1.5 border border-slate-800 mb-3 flex items-center justify-between text-[11px] text-slate-400">
+            <div class="flex items-center gap-1.5 truncate">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+              <span class="font-mono text-slate-300">192.168.4.1</span>
+            </div>
+            <span class="text-[9px] text-cyan-400 font-bold uppercase">HOTSPOT</span>
+          </div>
+
+          <!-- Captive Portal Rendered View -->
+          <div class="bg-[#0b0f19] rounded-2xl p-3 border border-slate-800 text-slate-100 flex flex-col gap-3 min-h-[460px]">
+            
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+              <div>
+                <h3 class="text-xs font-bold text-white">Sasthramela Bio-Band</h3>
+                <p class="text-[10px] text-slate-400">Captive Medical Portal</p>
+              </div>
+              <span id="portalBat" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-bold">BAT: 90%</span>
+            </div>
+
+            <!-- Emergency Banner -->
+            <div id="portalFallAlert" class="hidden bg-red-500/20 border border-red-500 rounded-xl p-2.5 text-center animate-pulse">
+              <div class="text-xs font-bold text-red-400">! EMERGENCY: FALL DETECTED !</div>
+              <div class="text-[10px] text-red-300 mb-1">Impact detected via MPU6050</div>
+              <button onclick="clearFallEvent()" class="px-3 py-1 bg-red-600 text-white rounded text-[10px] font-bold">RESET ALARM</button>
+            </div>
+
+            <!-- Vitals Grid -->
+            <div class="grid grid-cols-2 gap-2">
+              <div class="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <div class="text-[9px] text-slate-400 uppercase">Heart Rate</div>
+                <div class="text-lg font-extrabold text-white mt-0.5"><span id="portalHr">75</span> <span class="text-[10px] text-slate-400 font-normal">BPM</span></div>
+                <div class="text-[9px] text-emerald-400" id="portalHrStatus">Normal Rhythm</div>
+              </div>
+
+              <div class="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <div class="text-[9px] text-slate-400 uppercase">SpO2 Level</div>
+                <div class="text-lg font-extrabold text-white mt-0.5"><span id="portalSpo2">98</span> <span class="text-[10px] text-slate-400 font-normal">%</span></div>
+                <div class="text-[9px] text-emerald-400" id="portalSpo2Status">Optimal</div>
+              </div>
+
+              <div class="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <div class="text-[9px] text-slate-400 uppercase">Body Temp</div>
+                <div class="text-lg font-extrabold text-white mt-0.5"><span id="portalTempC">36.6</span> <span class="text-[10px] text-slate-400 font-normal">°C</span></div>
+                <div class="text-[9px] text-slate-400"><span id="portalTempF">97.9</span> °F</div>
+              </div>
+
+              <div class="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <div class="text-[9px] text-slate-400 uppercase">Stress (GSR)</div>
+                <div class="text-xs font-bold text-white mt-1" id="portalStress">Normal</div>
+                <div class="text-[9px] text-slate-400"><span id="portalGsrUS">8.3</span> µS</div>
+              </div>
+            </div>
+
+            <!-- Motion Card -->
+            <div class="bg-white/5 border border-white/10 rounded-xl p-2.5">
+              <div class="text-[9px] text-slate-400 uppercase">Motion & Kinematics (MPU6050)</div>
+              <div class="flex justify-between items-center mt-1">
+                <span class="text-xs font-bold" id="portalMotionText">Stationary / Safe</span>
+                <span class="text-[10px] font-mono text-cyan-400"><span id="portalAccel">1.00</span>g</span>
+              </div>
+            </div>
+
+            <!-- Remote Actions -->
+            <div class="flex flex-col gap-1.5 mt-auto">
+              <button onclick="onButtonSelect()" class="w-full py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 hover:bg-slate-700">
+                <span id="portalMuteText">Mute Device Buzzer</span>
+              </button>
+              <button onclick="triggerFallEvent()" class="w-full py-2 rounded-lg bg-red-600/30 border border-red-500/50 text-xs font-bold text-red-300 hover:bg-red-600/50">
+                Trigger Emergency SOS
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Home Indicator -->
+          <div class="w-28 h-1 bg-slate-700 mx-auto rounded-full mt-3"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State Variables
+    let currentScreen = 0;
+    const TOTAL_SCREENS = 5;
+    
+    let state = {
+      hr: 75,
+      spo2: 98,
+      tempC: 36.6,
+      tempF: 97.9,
+      gsrUS: 8.3,
+      gsrK: 120,
+      stress: "Normal",
+      accel: 1.00,
+      pitch: 0,
+      roll: 0,
+      fall: false,
+      battery: 90,
+      buzzerMuted: false
+    };
+
+    // Button 1: Next / Scroll
+    function onButtonScroll() {
+      currentScreen = (currentScreen + 1) % TOTAL_SCREENS;
+      renderOLED();
+    }
+
+    // Button 2: Select / Action
+    function onButtonSelect() {
+      if (state.fall) {
+        clearFallEvent();
+      } else {
+        state.buzzerMuted = !state.buzzerMuted;
+        renderOLED();
+        updatePortalUI();
+      }
+    }
+
+    function triggerFallEvent() {
+      state.fall = true;
+      state.accel = 3.42;
+      renderOLED();
+      updatePortalUI();
+    }
+
+    function clearFallEvent() {
+      state.fall = false;
+      state.accel = 1.00;
+      renderOLED();
+      updatePortalUI();
+    }
+
+    function updateSensorValues() {
+      state.hr = parseInt(document.getElementById('ctrlHr').value);
+      state.spo2 = parseInt(document.getElementById('ctrlSpo2').value);
+      state.tempC = parseFloat(document.getElementById('ctrlTemp').value);
+      state.tempF = parseFloat(((state.tempC * 1.8) + 32).toFixed(1));
+      state.gsrUS = parseFloat(document.getElementById('ctrlGsr').value);
+      state.gsrK = Math.round(1000 / state.gsrUS);
+      state.battery = parseInt(document.getElementById('ctrlBat').value);
+
+      // Classify Stress
+      if (state.gsrUS < 4.0) state.stress = "Deep Relax";
+      else if (state.gsrUS < 9.0) state.stress = "Normal";
+      else if (state.gsrUS < 15.0) state.stress = "Elevated";
+      else state.stress = "HIGH STRESS";
+
+      // Update control labels
+      document.getElementById('ctrlHrVal').innerText = state.hr;
+      document.getElementById('ctrlSpo2Val').innerText = state.spo2;
+      document.getElementById('ctrlTempVal').innerText = state.tempC.toFixed(1);
+      document.getElementById('ctrlGsrVal').innerText = state.gsrUS.toFixed(1);
+      document.getElementById('ctrlBatVal').innerText = state.battery;
+
+      renderOLED();
+      updatePortalUI();
+    }
+
+    function setPreset(type) {
+      if (type === 'normal') {
+        document.getElementById('ctrlHr').value = 72;
+        document.getElementById('ctrlSpo2').value = 99;
+        document.getElementById('ctrlTemp').value = 36.6;
+        document.getElementById('ctrlGsr').value = 6.5;
+        state.fall = false;
+      } else if (type === 'tachycardia') {
+        document.getElementById('ctrlHr').value = 145;
+        document.getElementById('ctrlSpo2').value = 96;
+        document.getElementById('ctrlTemp').value = 37.1;
+        document.getElementById('ctrlGsr').value = 11.0;
+        state.fall = false;
+      } else if (type === 'hypoxia') {
+        document.getElementById('ctrlHr').value = 110;
+        document.getElementById('ctrlSpo2').value = 83;
+        document.getElementById('ctrlTemp').value = 36.4;
+        document.getElementById('ctrlGsr').value = 13.5;
+        state.fall = false;
+      } else if (type === 'stress') {
+        document.getElementById('ctrlHr').value = 125;
+        document.getElementById('ctrlSpo2').value = 97;
+        document.getElementById('ctrlTemp').value = 37.4;
+        document.getElementById('ctrlGsr').value = 21.0;
+        state.fall = false;
+      } else if (type === 'fall') {
+        triggerFallEvent();
+        return;
+      }
+      updateSensorValues();
+    }
+
+    // Render Monochrome 0.96" OLED Screen (128x64 Pixel Simulation)
+    function renderOLED() {
+      const screen = document.getElementById('oledScreen');
+      
+      // Top status bar
+      let topBar = `
+        <div class="flex justify-between items-center text-sm border-b border-cyan-400/40 pb-0.5">
+          <span>AP:ON [CH1]</span>
+          <span class="font-bold">BAT:${state.battery}% [||||]</span>
+        </div>
+      `;
+
+      // Pagination dots
+      let dots = `<div class="flex justify-center gap-1.5 pt-1 border-t border-cyan-400/30 text-xs">`;
+      for(let i = 0; i < TOTAL_SCREENS; i++) {
+        dots += (i === currentScreen) ? `<span class="text-cyan-200 font-bold">&#9632;</span>` : `<span class="opacity-40">&#9633;</span>`;
+      }
+      dots += `</div>`;
+
+      let body = '';
+
+      if (currentScreen === 0) {
+        // Overview Dashboard
+        body = `
+          <div class="flex flex-col gap-1 text-base leading-tight my-auto">
+            <div class="flex justify-between">
+              <span>HR : ${state.hr} BPM</span>
+              <span>SpO2: ${state.spo2}%</span>
+            </div>
+            <div>TEMP: ${state.tempC.toFixed(1)}C (${state.tempF.toFixed(1)}F)</div>
+            <div>GSR : ${state.stress}</div>
+            <div class="${state.fall ? 'bg-cyan-400 text-black px-1 font-bold animate-pulse' : ''}">
+              ${state.fall ? '>> FALL DETECTED! <<' : 'MOTION: SAFE (' + state.accel.toFixed(2) + 'g)'}
+            </div>
+          </div>
+        `;
+      } else if (currentScreen === 1) {
+        // Cardiac View
+        body = `
+          <div class="my-auto flex flex-col justify-between">
+            <div class="text-xs uppercase tracking-wider text-cyan-300">CARDIAC & OXYGEN</div>
+            <div class="flex justify-between items-baseline mt-1">
+              <div class="text-3xl font-bold leading-none">${state.hr} <span class="text-sm font-normal">BPM</span></div>
+              <div class="text-2xl font-bold">${state.spo2}% <span class="text-xs font-normal">SpO2</span></div>
+            </div>
+            <div class="text-sm font-mono mt-1 text-cyan-300">__/\_/\__/\_/\_/\__ (PULSE)</div>
+          </div>
+        `;
+      } else if (currentScreen === 2) {
+        // Stress & Temp View
+        body = `
+          <div class="my-auto flex flex-col gap-1">
+            <div class="text-xs uppercase tracking-wider text-cyan-300">STRESS (EDA) & THERMAL</div>
+            <div class="text-sm">SKIN: ${state.gsrK}kOhm (${state.gsrUS.toFixed(1)}uS)</div>
+            <div class="text-base font-bold">STATE: ${state.stress}</div>
+            <div class="w-full bg-cyan-950/60 border border-cyan-400 h-2 p-0.5">
+              <div class="bg-cyan-400 h-full" style="width: ${Math.min(100, (state.gsrUS / 20.0) * 100)}%;"></div>
+            </div>
+            <div class="text-xs">BODY TEMP: ${state.tempC.toFixed(1)}C / ${state.tempF.toFixed(1)}F</div>
+          </div>
+        `;
+      } else if (currentScreen === 3) {
+        // Motion & Fall
+        body = `
+          <div class="my-auto flex flex-col gap-1">
+            <div class="text-xs uppercase tracking-wider text-cyan-300">6-AXIS MOTION (MPU6050)</div>
+            <div class="text-sm">ACCEL G: ${state.accel.toFixed(2)} g</div>
+            <div class="text-xs">PITCH: 2 deg | ROLL: -1 deg</div>
+            <div class="text-sm mt-1 ${state.fall ? 'bg-cyan-400 text-black font-bold p-0.5 text-center' : 'text-cyan-300'}">
+              ${state.fall ? '! IMPACT FALL TRIGGERED !' : 'PATIENT POSTURE: NORMAL'}
+            </div>
+          </div>
+        `;
+      } else if (currentScreen === 4) {
+        // Wi-Fi Hotspot info
+        body = `
+          <div class="my-auto flex flex-col gap-0.5 text-xs">
+            <div class="uppercase tracking-wider text-cyan-300 font-bold">CAPTIVE PORTAL HOTSPOT</div>
+            <div>SSID: SmartBand-Sasthramela</div>
+            <div>IP  : 192.168.4.1 (DNS:53)</div>
+            <div>CLIENTS: 1 Connected</div>
+            <div>BUZZER : ${state.buzzerMuted ? 'MUTED [BTN 2]' : 'ACTIVE'}</div>
+          </div>
+        `;
+      }
+
+      screen.innerHTML = topBar + body + dots;
+
+      // Update Buzzer LED Glow
+      const isAlarm = state.fall || (state.hr > 120 || state.hr < 45) || (state.spo2 < 90) || (state.tempC > 38.5);
+      const buzzerLed = document.getElementById('buzzerLed');
+      if (isAlarm && !state.buzzerMuted) {
+        buzzerLed.classList.add('buzzer-glow');
+      } else {
+        buzzerLed.classList.remove('buzzer-glow');
+      }
+    }
+
+    // Update Captive Portal Web UI
+    function updatePortalUI() {
+      document.getElementById('portalHr').innerText = state.hr;
+      document.getElementById('portalSpo2').innerText = state.spo2;
+      document.getElementById('portalTempC').innerText = state.tempC.toFixed(1);
+      document.getElementById('portalTempF').innerText = state.tempF.toFixed(1);
+      document.getElementById('portalStress').innerText = state.stress;
+      document.getElementById('portalGsrUS').innerText = state.gsrUS.toFixed(1);
+      document.getElementById('portalBat').innerText = 'BAT: ' + state.battery + '%';
+      document.getElementById('portalAccel').innerText = state.accel.toFixed(2);
+      document.getElementById('portalMuteText').innerText = state.buzzerMuted ? 'Unmute Device Buzzer' : 'Mute Device Buzzer';
+
+      const fallAlert = document.getElementById('portalFallAlert');
+      const motionText = document.getElementById('portalMotionText');
+      if (state.fall) {
+        fallAlert.classList.remove('hidden');
+        motionText.innerText = 'IMPACT DETECTED!';
+        motionText.className = 'text-xs font-bold text-red-400';
+      } else {
+        fallAlert.classList.add('hidden');
+        motionText.innerText = 'Stationary / Safe';
+        motionText.className = 'text-xs font-bold text-emerald-400';
+      }
+    }
+
+    // Initialize Simulator on load
+    renderOLED();
+    updatePortalUI();
+  </script>
+</body>
+</html>

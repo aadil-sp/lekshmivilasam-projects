@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hand Follower Control</title>
+<style>
+  body { background: #0f172a; color: #f8fafc; font-family: sans-serif; padding: 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card { background: #1e293b; padding: 20px; border-radius: 8px; }
+  input[type=range] { width: 100%; margin: 10px 0; }
+  button { padding: 10px 20px; background: #3b82f6; border: none; color: white; border-radius: 4px; cursor: pointer; }
+  button.danger { background: #ef4444; }
+  .video-container img { width: 100%; border-radius: 4px; }
+</style>
+</head>
+<body>
+  <h1>Hand Position Follower</h1>
+  
+  <div class="grid">
+    <div class="card">
+      <h2>RGB Camera (Tracking)</h2>
+      <div class="video-container">
+        <img src="http://10.215.119.164:5001/video_feed">
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Depth Camera (Distance)</h2>
+      <div class="video-container">
+        <img src="http://10.215.119.164:5001/depth_feed">
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Control Mode</h2>
+      <button onclick="setMode('MANUAL')" class="danger">STOP (Manual)</button>
+      <button onclick="setMode('FOLLOW')">START HAND FOLLOW</button>
+      <p>Current Mode: <strong id="modeTxt">MANUAL</strong></p>
+    </div>
+    
+    <div class="card">
+      <h2>PID Tuning</h2>
+      <div>
+        <h3>Follow (Linear) PID</h3>
+        <label>P: <input type="range" id="linP" min="0" max="0.01" step="0.0001" value="0.002" onchange="sendPID()"></label>
+        <label>D: <input type="range" id="linD" min="0" max="0.01" step="0.0001" value="0.001" onchange="sendPID()"></label>
+      </div>
+      <div>
+        <h3>Rotate (Angular) PID</h3>
+        <label>P: <input type="range" id="rotP" min="0" max="0.01" step="0.0001" value="0.002" onchange="sendPID()"></label>
+        <label>D: <input type="range" id="rotD" min="0" max="0.01" step="0.0001" value="0.001" onchange="sendPID()"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Motor Deadzones (Min PWM)</h2>
+      <div>
+        <label>Left Motor: <span id="lVal">80</span> <input type="range" id="minL" min="0" max="150" step="1" value="80" oninput="document.getElementById('lVal').innerText=this.value; sendPID()"></label>
+      </div>
+      <div>
+        <label>Right Motor: <span id="rVal">80</span> <input type="range" id="minR" min="0" max="150" step="1" value="80" oninput="document.getElementById('rVal').innerText=this.value; sendPID()"></label>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function setMode(mode) {
+    fetch('/api/mode', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({mode})
+    });
+    document.getElementById('modeTxt').innerText = mode;
+  }
+  
+  
+  function sendPID() {
+    const data = {
+      lin_p: parseFloat(document.getElementById('linP').value),
+      lin_d: parseFloat(document.getElementById('linD').value),
+      rot_p: parseFloat(document.getElementById('rotP').value),
+      rot_d: parseFloat(document.getElementById('rotD').value),
+      min_l: parseInt(document.getElementById('minL').value),
+      min_r: parseInt(document.getElementById('minR').value)
+    };
+
+    fetch('/api/pid', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+  }
+  
+  // Quick hack to show current mode
+  setInterval(() => {
+    fetch('/api/telemetry').then(r => r.json()).then(d => {
+      document.getElementById('modeTxt').innerText = d.mode;
+    });
+  }, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+========================================================================================
+KERALA STATE SASTHROLSAVAM (SASTHRAMELA) - ELECTRONICS PROJECT REPORT
+PROJECT: Smart IoT Health & Fall-Detection Bio-Band with Captive Medical Portal
+MICROCONTROLLER: ESP32-C3 RISC-V SoC (160MHz)
+========================================================================================
+
+1. PROJECT OVERVIEW
+-------------------
+The Smart Health & Fall-Detection Bio-Band is a self-contained, low-cost wearable medical
+telemetry device designed for geriatric care, solo patients, and hazardous job workers.
+It provides real-time monitoring of:
+- Heart Rate (BPM) & Blood Oxygen Saturation (SpO2) via MAX30102 PPG Optical Sensor
+- 6-Axis Motion, Posture & Fall Detection via MPU6050 Accelerometer/Gyroscope
+- Body Temperature via DS18B20 High-Precision Digital Sensor
+- Stress & Autonomic Nervous Response via GSR (Galvanic Skin Response) Electrodes
+- Onboard 0.96" Monochrome OLED Multi-Screen Menu with 2 Hardware Push Buttons
+- Standalone Wi-Fi Captive Portal (192.168.4.1) for zero-app, instant smartphone access
+
+2. SCIENTIFIC PRINCIPLES
+------------------------
+A. Photoplethysmography (PPG):
+   Dual-wavelength light absorption (660nm Red and 880nm IR) through vascular tissue.
+   SpO2 = 110 - 25 * [(AC_red / DC_red) / (AC_ir / DC_ir)] %
+
+B. Galvanic Skin Response (GSR):
+   Measures sympathetic arousal. Psychological stress increases sweat gland conductance:
+   Conductance (G) = 1000 / R_skin (microSiemens)
+
+C. Fall Detection Algorithm:
+   Vector Magnitude: a_total = sqrt(ax^2 + ay^2 + az^2)
+   Condition: Freefall (< 0.45g for >60ms) followed by Impact (> 2.6g within 600ms)
+
+3. PIN MAPPING (ESP32-C3)
+-------------------------
+- 0.96" OLED Display: SDA -> GPIO 4, SCL -> GPIO 5 (3.3V, GND)
+- MAX30102 Sensor:    SDA -> GPIO 4, SCL -> GPIO 5 (3.3V, GND)
+- MPU6050 6-Axis IMU: SDA -> GPIO 4, SCL -> GPIO 5 (3.3V, GND)
+- DS18B20 Temp:       Data -> GPIO 2 (4.7k Pull-up to 3.3V)
+- GSR Finger Strap:   Signal -> GPIO 0 (ADC1_CH0)
+- Active Buzzer:      Positive -> GPIO 3, Negative -> GND
+- Button 1 (Scroll):  Pin -> GPIO 9, Pin -> GND (Active LOW)
+- Button 2 (Select):  Pin -> GPIO 8, Pin -> GND (Active LOW)
+- Battery Voltage:    Divider -> GPIO 1 (ADC1_CH1)
+
+4. MENU SCREENS (0.96" OLED)
+----------------------------
+Screen 0: Overview Dashboard (HR, SpO2, Temp C/F, GSR, Motion)
+Screen 1: Cardiac (BPM, SpO2, Pulse Waveform graphic)
+Screen 2: Stress (GSR kOhm, microSiemens, Stress bar, Temp)
+Screen 3: Motion & Fall (Total G, Pitch, Roll, Fall Alert Banner)
+Screen 4: Wi-Fi Hotspot (SSID, URL: 192.168.4.1, Clients, Buzzer State)
+
+5. ESTIMATED BILL OF MATERIALS (BOM)
+------------------------------------
+1. ESP32-C3 SuperMini Board:       Rs. 290
+2. 0.96" Monochrome I2C OLED:       Rs. 160
+3. MAX30102 PPG Module:             Rs. 220
+4. MPU6050 6-Axis IMU:              Rs. 140
+5. DS18B20 Temp Probe:              Rs.  90
+6. GSR Sensor + Finger Straps:      Rs. 210
+7. 3.7V 500mAh LiPo + TP4056:       Rs. 180
+8. Buttons, Buzzer & Passives:      Rs.  30
+9. Enclosure & Straps:              Rs.  80
+TOTAL COST:                         Rs. 1,400 INR
+
+========================================================================================
+Kerala State Sasthrolsavam &bull; Lekshmivilasam Electronics Department
+========================================================================================

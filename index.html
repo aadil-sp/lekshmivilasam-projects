@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lekshmivilasam Research & Innovation Labs | State Sasthrolsavam 2026</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Background Glows -->
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <span class="brand-logo">⚡</span>
+        <div class="brand-text">
+          <span class="brand-name">Lekshmivilasam Labs</span>
+          <span class="brand-tag">Sasthrolsavam 2026</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="#hero" class="nav-link">Home</a>
+        <a href="#projects-hub" class="nav-link">Projects</a>
+        <a href="#downloads" class="nav-link">Downloads</a>
+        <a href="#viva" class="nav-link">Viva Defense</a>
+      </div>
+      <a href="#projects-hub" class="btn btn-sm btn-primary">Explore Projects</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero" id="hero">
+    <div class="hero-container">
+      <div class="badge-pill">
+        <span class="badge-dot"></span>
+        <span>Kerala State School Sasthrolsavam (Sasthramela) 2026 State Entry</span>
+      </div>
+      <h1 class="hero-title">
+        Advanced Applied Engineering & <span class="gradient-text">AI Project Portfolio</span>
+      </h1>
+      <p class="hero-desc">
+        A unified research suite featuring autonomous LiDAR SLAM robotics, edge AIoT disaster & landslide early warning systems, and smart medical-grade wearable bio-electronics.
+      </p>
+      <div class="hero-actions">
+        <a href="#projects-hub" class="btn btn-lg btn-primary" id="explore-btn">
+          <span>Explore Projects</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="public/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf" download class="btn btn-lg btn-secondary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <span>Download Master PDF Report</span>
+        </a>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-num">3</span>
+          <span class="stat-label">Full Engineering Projects</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">100%</span>
+          <span class="stat-label">Offline Edge Autonomy</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">92%+</span>
+          <span class="stat-label">Cost Savings vs Commercial</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">Live</span>
+          <span class="stat-label">Hardware & Hotspot Verified</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Projects Hub Section -->
+  <main class="projects-section" id="projects-hub">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">Select a Project Domain</h2>
+        <p class="section-subtitle">Click below to inspect in-depth code, circuit schematics, mathematical models, operational flows, and interactive simulators.</p>
+      </div>
+
+      <!-- 3 Main Project Selector Buttons -->
+      <div class="project-selector">
+        <button class="project-btn active" data-project="iot">
+          <div class="project-btn-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🌧️</div>
+          <div class="project-btn-info">
+            <span class="project-btn-tag">IoT & Disaster Mitigation</span>
+            <h3 class="project-btn-title">AIoT Disaster & Rain Station</h3>
+          </div>
+        </button>
+
+        <button class="project-btn" data-project="robotics">
+          <div class="project-btn-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">🤖</div>
+          <div class="project-btn-info">
+            <span class="project-btn-tag">Robotics & AI</span>
+            <h3 class="project-btn-title">RoboNav-SLAM Mobile Robot</h3>
+          </div>
+        </button>
+
+        <button class="project-btn" data-project="electronics">
+          <div class="project-btn-icon" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">🩺</div>
+          <div class="project-btn-info">
+            <span class="project-btn-tag">Applied Bio-Electronics</span>
+            <h3 class="project-btn-title">Smart Health & Fall Bio-Band</h3>
+          </div>
+        </button>
+      </div>
+
+      <!-- Project Detail Display Container -->
+      <div class="project-detail-box" id="project-detail">
+        <!-- Sub-Navigation Tabs for Selected Project -->
+        <div class="tabs-nav">
+          <button class="tab-link active" data-tab="overview">📌 Overview</button>
+          <button class="tab-link" data-tab="circuit">🔌 Schematic & Circuits</button>
+          <button class="tab-link" data-tab="code">💻 Full Code</button>
+          <button class="tab-link" data-tab="working">⚙️ Working & Math</button>
+          <button class="tab-link" data-tab="applications">🚀 Applications</button>
+          <button class="tab-link" data-tab="simulator">🎮 Live Simulator</button>
+          <button class="tab-link" data-tab="viva">🎤 Judges' Viva Defense</button>
+        </div>
+
+        <!-- Dynamic Content Injected Here by JavaScript -->
+        <div class="tab-content-wrapper" id="tab-content">
+          <!-- Populated by script.js -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Master Documentation & Downloads Section -->
+  <section class="downloads-section" id="downloads">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">📄 Official Project Publications & Reports</h2>
+        <p class="section-subtitle">Download the state competition PDF documentation, circuit schematics, and presentation brochures.</p>
+      </div>
+
+      <div class="downloads-grid">
+        <div class="doc-card featured">
+          <div class="doc-badge">Master Documentation</div>
+          <h3>Kerala Sasthrolsavam Project-Wise Master Report</h3>
+          <p>Exhaustive publication-grade PDF covering all 3 projects, circuit tables, complete codebases, Terzaghi & SLAM mathematical models, BOM, and viva voce guide.</p>
+          <a href="public/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf" download class="btn btn-primary btn-block">
+            <span>Download Master PDF Report</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          </a>
+        </div>
+
+        <div class="doc-card">
+          <div class="doc-badge green">IoT Project Report</div>
+          <h3>AIoT Landslide & Disaster Warning System</h3>
+          <p>Detailed report on soil pore-pressure mechanics, standalone Wi-Fi hotspot dashboard (192.168.4.1), and rain pump emulation relay.</p>
+          <a href="public/Landslide_Alert_System_Sasthramela_Report.pdf" download class="btn btn-secondary btn-block">
+            <span>Download IoT PDF</span>
+          </a>
+        </div>
+
+        <div class="doc-card">
+          <div class="doc-badge blue">Robotics Report</div>
+          <h3>RoboNav-SLAM Autonomous Mobile Robot</h3>
+          <p>Comprehensive report covering 2D RPLIDAR Bayesian Log-Odds mapping, A* global planner, DWA local obstacle avoidance, and kinematics.</p>
+          <a href="public/RoboNav_SLAM_Sasthramela_Report.pdf" download class="btn btn-secondary btn-block">
+            <span>Download Robotics PDF</span>
+          </a>
+        </div>
+
+        <div class="doc-card">
+          <div class="doc-badge orange">Electronics Report</div>
+          <h3>Smart Health & Fall-Detection Bio-Band</h3>
+          <p>Full documentation of ESP32-C3 RISC-V wearable, Beer-Lambert PPG pulse oximetry, and 3D inertial Signal Magnitude Vector ($SMV$) fall algorithm.</p>
+          <a href="public/Health_Monitor_Band_Sasthramela_Report.pdf" download class="btn btn-secondary btn-block">
+            <span>Download Electronics PDF</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <span class="brand-logo">⚡</span>
+          <div>
+            <h3>Lekshmivilasam Applied Research Labs</h3>
+            <p>State School Sasthrolsavam &bull; Kerala State Finals 2026</p>
+          </div>
+        </div>
+        <div class="footer-tags">
+          <span class="tag">ESP32 Dual-Core</span>
+          <span class="tag">RPLIDAR SLAM</span>
+          <span class="tag">MAX30102 PPG</span>
+          <span class="tag">Active LOW Relay</span>
+          <span class="tag">Edge AI</span>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Lekshmivilasam Labs. Engineered for community safety and autonomous intelligence.</p>
+        <p>Ready for Vercel Static Hosting &bull; Verified Hardware Firmware</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

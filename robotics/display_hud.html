@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=480, height=320, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RoboNav-SLAM Display HUD</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; cursor: none !important; }
+  html, body {
+    width: 480px; height: 320px;
+    background: #060911;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'SF Pro Display', sans-serif;
+    overflow: hidden;
+    position: relative;
+    padding: 5px 7px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    height: 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(15,23,42,0.92);
+    border: 1px solid #1e293b; border-radius: 6px;
+    padding: 0 10px; flex-shrink: 0;
+  }
+  .brand { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 800; color: #38bdf8; letter-spacing: 0.4px; }
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #10b981; box-shadow: 0 0 7px #10b981;
+    transition: background 0.3s;
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+  .state-badge {
+    font-size: 10px; font-weight: 700;
+    background: #064e3b; color: #34d399;
+    border: 1px solid #059669;
+    padding: 2px 7px; border-radius: 4px; letter-spacing: 0.4px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .clock { font-family: 'SF Mono', Consolas, monospace; font-size: 13px; font-weight: 700; color: #94a3b8; }
+
+  /* ── Main Grid ── */
+  .main-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 235px 1fr;
+    gap: 6px;
+    min-height: 0;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: rgba(15,23,42,0.75);
+    border: 1px solid #1e293b; border-radius: 6px;
+    padding: 6px 8px;
+    display: flex; flex-direction: column;
+    justify-content: space-between; gap: 3px;
+    overflow: hidden;
+  }
+
+  /* ── IP Box ── */
+  .ip-box {
+    background: linear-gradient(135deg,rgba(14,165,233,0.15),rgba(99,102,241,0.15));
+    border: 1px solid #0284c7; border-radius: 5px;
+    padding: 3px 8px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .ip-label { font-size: 9px; font-weight: 700; color: #7dd3fc; text-transform: uppercase; }
+  .ip-value { font-family:'SF Mono',Consolas,monospace; font-size: 14px; font-weight: 800; color: #38bdf8; }
+
+  /* ── Stat Rows ── */
+  .stat-row { display: flex; align-items: center; justify-content: space-between; }
+  .stat-label { font-size: 10px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
+  .icon-svg { width: 12px; height: 12px; fill: #38bdf8; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+  .stat-val { font-family: 'SF Mono', Consolas, monospace; font-size: 11px; font-weight: 700; color: #f1f5f9; }
+  .bar-bg {
+    width: 100%; height: 4px;
+    background: #1e293b; border-radius: 3px; overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.35s ease; }
+  .bar-temp { background: linear-gradient(90deg,#10b981,#f59e0b,#ef4444); }
+  .bar-cpu  { background: #38bdf8; }
+  .bar-ram  { background: #818cf8; }
+
+  /* ── Right panel ── */
+  .right-panel { display: flex; flex-direction: column; gap: 5px; }
+
+  /* ── Radar ── */
+  .radar-wrap {
+    flex: 1;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 0;
+  }
+  canvas#radarCanvas { display: block; }
+  .hz-badge {
+    position: absolute; bottom: 0; right: 0;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 9px; font-weight: 700; color: #38bdf8;
+    background: rgba(15,23,42,0.85); border: 1px solid #1e293b;
+    padding: 1px 4px; border-radius: 3px;
+    pointer-events: none;
+  }
+  .hdg-badge {
+    position: absolute; bottom: 0; left: 0;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 9px; font-weight: 700; color: #94a3b8;
+    background: rgba(15,23,42,0.85); border: 1px solid #1e293b;
+    padding: 1px 4px; border-radius: 3px;
+    pointer-events: none;
+  }
+
+  /* ── Sub pills ── */
+  .subs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+  .sub-pill {
+    background: #0f172a; border: 1px solid #1e293b; border-radius: 4px;
+    padding: 2px 5px; display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px;
+  }
+  .sub-name { color: #94a3b8; font-weight: 600; }
+  .sub-state { font-weight: 700; color: #10b981; font-size: 9px; }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    height: 22px; flex-shrink: 0;
+    background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 5px;
+    padding: 0 8px; display: flex; align-items: center; justify-content: space-between;
+    font-size: 9px; color: #64748b;
+  }
+  .info-tag { display: flex; align-items: center; gap: 4px; color: #94a3b8; }
+  .info-tag strong { color: #38bdf8; font-family: 'SF Mono', Consolas, monospace; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="brand">
+    <div class="pulse-dot" id="pulseDot"></div>
+    <span>ROBONAV-SLAM</span>
+    <span style="color:#64748b;font-size:10px;">PI 5</span>
+  </div>
+  <div class="state-badge" id="statBadge">CONNECTING…</div>
+  <div class="clock" id="clock">--:--:--</div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main-grid">
+
+  <!-- LEFT: vitals -->
+  <div class="card">
+    <div class="ip-box">
+      <div class="ip-label">IP ADDRESS</div>
+      <div class="ip-value" id="ipVal">…</div>
+    </div>
+
+    <!-- CPU TEMP -->
+    <div>
+      <div class="stat-row">
+        <span class="stat-label">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M15 13V5c0-1.66-1.34-3-3-3S9 3.34 9 5v8c-1.21.91-2 2.37-2 4 0 2.76 2.24 5 5 5s5-2.24 5-5c0-1.63-.79-3.09-2-4zm-4-8c0-.55.45-1 1-1s1 .45 1 1h-2z"/></svg>
+          CPU Temp
+        </span>
+        <span class="stat-val" id="cpuTempVal">--°C</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill bar-temp" id="tempBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- CPU LOAD -->
+    <div>
+      <div class="stat-row">
+        <span class="stat-label">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          CPU Load
+        </span>
+        <span class="stat-val" id="cpuLoadVal">--%</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill bar-cpu" id="cpuBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- RAM -->
+    <div>
+      <div class="stat-row">
+        <span class="stat-label">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M4 6h16v12H4zm2 2v8h12V8H6zm2 2h2v4H8v-4zm4 0h2v4h-2v-4z"/></svg>
+          RAM
+        </span>
+        <span class="stat-val" id="ramVal">--/--MB</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill bar-ram" id="ramBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- UPTIME / DISK -->
+    <div class="stat-row" style="padding-top:2px;border-top:1px solid #1e293b;">
+      <span class="stat-label">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        <strong id="uptimeVal" style="color:#cbd5e1;font-weight:normal;">--</strong>
+      </span>
+      <span class="stat-label">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 18H5v-4h7v4zm0-6H5v-4h7v4zm0-6H5V4h7v4zm7 12h-5V4h5v16z"/></svg>
+        <strong id="diskVal" style="color:#cbd5e1;font-weight:normal;">--</strong>
+      </span>
+    </div>
+  </div>
+
+  <!-- RIGHT: Radar + sub-pills -->
+  <div class="card" style="gap:4px;">
+    <div class="radar-wrap" id="radarWrap" style="flex-direction: column; gap: 4px; padding: 2px;">
+      <canvas id="radarCanvas" style="display: none;"></canvas>
+      <div style="flex:1; width: 100%; border-radius: 4px; overflow: hidden; position: relative; background: #000;">
+        <img src="http://localhost:5001/video_feed" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div class="hdg-badge" style="top: 2px; bottom: auto; background: rgba(0,0,0,0.6); color: white;">RGB CAMERA</div>
+      </div>
+      <div style="flex:1; width: 100%; border-radius: 4px; overflow: hidden; position: relative; background: #000;">
+        <img src="http://localhost:5001/depth_feed" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div class="hdg-badge" style="top: 2px; bottom: auto; background: rgba(0,0,0,0.6); color: white;">DEPTH CAMERA</div>
+      </div>
+      <div class="hz-badge" id="hzBadge" style="display:none;">-- Hz</div>
+      <div class="hdg-badge" id="hdgBadge" style="display:none;">HDG 0°</div>
+    </div>
+    <div class="subs-grid">
+      <div class="sub-pill"><span class="sub-name">LiDAR</span><span class="sub-state" id="s-lidar">--</span></div>
+      <div class="sub-pill"><span class="sub-name">Mode</span><span class="sub-state" id="s-mode" style="color:#f59e0b;">MANUAL</span></div>
+      <div class="sub-pill"><span class="sub-name">Status</span><span class="sub-state" id="s-status">ONLINE</span></div>
+      <div class="sub-pill"><span class="sub-name">Display</span><span class="sub-state" style="color:#38bdf8;">3.5" SPI</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="info-tag">
+    <svg class="icon-svg" viewBox="0 0 24 24" style="width:11px;height:11px;fill:#64748b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    Web: <strong id="ipWeb">…</strong>:5000
+  </div>
+  <div class="info-tag">
+    <svg class="icon-svg" viewBox="0 0 24 24" style="width:11px;height:11px;fill:#64748b"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+    SSH: <strong>lekshmi@<span id="ipSsh">…</span></strong>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ── Clock ── */
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    String(n.getHours()).padStart(2,'0') + ':' +
+    String(n.getMinutes()).padStart(2,'0') + ':' +
+    String(n.getSeconds()).padStart(2,'0');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ── Radar canvas — size to its container ── */
+const canvas = document.getElementById('radarCanvas');
+const ctx    = canvas.getContext('2d');
+const wrap   = document.getElementById('radarWrap');
+
+function resizeCanvas() {
+  const w = wrap.clientWidth;
+  const h = wrap.clientHeight;
+  const sz = Math.min(w, h);
+  canvas.width  = sz;
+  canvas.height = sz;
+}
+resizeCanvas();
+
+const R         = () => canvas.width / 2 - 4;  // max radar radius (dynamic)
+const CX        = () => canvas.width  / 2;
+const CY        = () => canvas.height / 2;
+
+let sweepAngle  = 0;
+let lidarPts    = [];          // compact: [[angle_deg, dist_mm], …]
+const MAX_MM    = 4000;        // display range
+let lastFrameTs = 0;
+
+/* ── Fade trail buffer using off-screen canvas ── */
+let trailCanvas = null, trailCtx = null;
+
+function ensureTrail() {
+  if (!trailCanvas || trailCanvas.width !== canvas.width) {
+    trailCanvas       = document.createElement('canvas');
+    trailCanvas.width = canvas.width;
+    trailCanvas.height= canvas.height;
+    trailCtx          = trailCanvas.getContext('2d');
+  }
+}
+
+/* ── Draw one radar frame ── */
+function drawRadar(ts) {
+  const dt  = Math.min((ts - (lastFrameTs || ts)) / 1000, 0.1);
+  lastFrameTs = ts;
+  sweepAngle += dt * (2 * Math.PI * 1.2);  // ~1.2 revolutions/sec sweep
+
+  ensureTrail();
+  const cx  = CX(), cy = CY(), r = R();
+  const sz  = canvas.width;
+
+  /* fade trail */
+  ctx.clearRect(0, 0, sz, sz);
+  trailCtx.globalAlpha = 0.82;
+  trailCtx.globalCompositeOperation = 'copy';
+  trailCtx.drawImage(canvas, 0, 0);
+  ctx.drawImage(trailCanvas, 0, 0);
+  trailCtx.globalCompositeOperation = 'source-over';
+  trailCtx.globalAlpha = 1.0;
+
+  /* grid rings */
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth   = 0.8;
+  [0.33, 0.66, 1.0].forEach(f => {
+    ctx.beginPath(); ctx.arc(cx, cy, r*f, 0, Math.PI*2); ctx.stroke();
+  });
+  /* crosshairs */
+  ctx.beginPath();
+  ctx.moveTo(cx-r,cy); ctx.lineTo(cx+r,cy);
+  ctx.moveTo(cx,cy-r); ctx.lineTo(cx,cy+r);
+  ctx.stroke();
+
+  /* sweep beam */
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(sweepAngle);
+  const g = ctx.createLinearGradient(0,0,r,0);
+  g.addColorStop(0,  'rgba(56,189,248,0.45)');
+  g.addColorStop(0.6,'rgba(56,189,248,0.1)');
+  g.addColorStop(1,  'rgba(56,189,248,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,-0.4,0); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(r,0); ctx.stroke();
+  ctx.restore();
+
+  /* LiDAR points — angle=0 is front (up), clockwise */
+  const pts = lidarPts;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i][0], d = pts[i][1];
+    if (d < 50 || d > MAX_MM) continue;
+    const rad    = (a - 90) * (Math.PI / 180);
+    const scaled = (d / MAX_MM) * r;
+    const px = cx + Math.cos(rad) * scaled;
+    const py = cy + Math.sin(rad) * scaled;
+    /* colour: red <600mm, amber <1500mm, green far */
+    ctx.fillStyle = d < 600 ? '#ef4444' : d < 1500 ? '#f59e0b' : '#10b981';
+    ctx.beginPath(); ctx.arc(px, py, 1.6, 0, Math.PI*2); ctx.fill();
+  }
+
+  /* robot dot */
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
+
+  requestAnimationFrame(drawRadar);
+}
+requestAnimationFrame(drawRadar);
+
+/* ── SSE combined stream ── */
+let sse = null;
+let reconnectDelay = 300;
+
+function connectSSE() {
+  if (sse) sse.close();
+  sse = new EventSource('/api/stream');
+
+  sse.onmessage = function(e) {
+    reconnectDelay = 300;
+    let d;
+    try { d = JSON.parse(e.data); } catch(_) { return; }
+
+    if (d.t === 'l') {
+      /* LiDAR frame */
+      lidarPts = d.pts || [];
+      const el = document.getElementById('s-lidar');
+      const hz = d.hz || 0;
+      el.textContent  = d.st && d.st.startsWith('ONLINE') ? 'ONLINE' : (d.st || '--');
+      el.style.color  = d.st && d.st.startsWith('ONLINE') ? '#10b981' : '#f59e0b';
+      document.getElementById('hzBadge').textContent = hz ? hz.toFixed(1) + ' Hz' : '-- Hz';
+      setOnline(true);
+
+    } else if (d.t === 's') {
+      /* Telemetry */
+      updateTelemetry(d);
+      if (d.mode) document.getElementById('s-mode').textContent = d.mode;
+      if (d.status) document.getElementById('s-status').textContent = d.status === 'SYSTEM READY' ? 'READY' : 'ACTIVE';
+    }
+  };
+
+  sse.onerror = function() {
+    setOnline(false);
+    sse.close();
+    setTimeout(connectSSE, reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 2, 5000);
+  };
+}
+
+function setOnline(ok) {
+  document.getElementById('pulseDot').style.background = ok ? '#10b981' : '#ef4444';
+  document.getElementById('pulseDot').style.boxShadow  = ok ? '0 0 7px #10b981' : '0 0 7px #ef4444';
+}
+
+function updateTelemetry(d) {
+  if (d.ip) {
+    document.getElementById('ipVal').textContent = d.ip;
+    document.getElementById('ipWeb').textContent = d.ip;
+    document.getElementById('ipSsh').textContent = d.ip;
+  }
+  const temp = d.cpu_temp || 45;
+  document.getElementById('cpuTempVal').textContent = temp.toFixed(1) + '°C';
+  document.getElementById('tempBar').style.width = Math.min(100, Math.max(0, ((temp-30)/55)*100)) + '%';
+
+  const load = d.cpu_load || 0;
+  document.getElementById('cpuLoadVal').textContent = load + '%';
+  document.getElementById('cpuBar').style.width = load + '%';
+
+  const ru = d.ram_used || 0, rt = d.ram_total || 1;
+  document.getElementById('ramVal').textContent = ru + '/' + rt + 'MB';
+  document.getElementById('ramBar').style.width = Math.round((ru/rt)*100) + '%';
+
+  if (d.uptime) document.getElementById('uptimeVal').textContent = d.uptime;
+  if (d.disk) document.getElementById('diskVal').textContent =
+    d.disk.used + '/' + d.disk.total + 'G';
+  if (d.pose) document.getElementById('hdgBadge').textContent =
+    'HDG ' + d.pose.theta_deg.toFixed(0) + '°';
+  if (d.status) document.getElementById('statBadge').textContent = d.status;
+}
+
+connectSSE();
+</script>
+</body>
+</html>

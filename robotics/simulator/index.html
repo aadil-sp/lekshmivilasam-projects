@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoboNav-SLAM: LiDAR & Vision Autonomous Navigation Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #090d16;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Glow utility classes */
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+    .glow-purple {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+
+    /* Pulse dot */
+    @keyframes ping-slow {
+      0% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.6); opacity: 0.3; }
+      100% { transform: scale(1); opacity: 0.9; }
+    }
+    .pulse-indicator {
+      animation: ping-slow 2s infinite ease-in-out;
+    }
+
+    /* Joystick knob transition */
+    .joystick-base {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 flex flex-col justify-between">
+
+  <!-- TOP HEADER -->
+  <header class="max-w-7xl mx-auto w-full mb-4">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b border-slate-800 gap-4">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-sky-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <svg class="w-6 h-6 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[11px] font-bold tracking-wider uppercase">
+              Kerala Sasthrolsavam &bull; State Robotics
+            </span>
+            <span id="systemStatusBadge" class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold tracking-wider">
+              ONLINE &bull; SLAM ACTIVE
+            </span>
+          </div>
+          <h1 class="text-xl md:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            RoboNav-SLAM
+            <span class="text-xs font-normal text-slate-400">Autonomous LiDAR & Vision Navigation Bot</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Quick Environment Preset Selector & Actions -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-lg p-1">
+          <span class="text-xs font-semibold text-slate-400 px-2">Preset Map:</span>
+          <select id="mapPresetSelect" onchange="loadPresetMap(this.value)" class="bg-slate-800 text-xs font-semibold text-cyan-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-cyan-400">
+            <option value="arena">1. Sasthramela Arena</option>
+            <option value="apartment">2. 2-BHK Apartment</option>
+            <option value="warehouse">3. Logistics Warehouse</option>
+            <option value="hospital">4. Hospital Ward</option>
+            <option value="maze">5. Obstacle Maze</option>
+            <option value="empty">6. Custom Sandbox (Draw)</option>
+          </select>
+        </div>
+
+        <button onclick="toggleFrontierExploration()" id="btnFrontier" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-purple-600/20 text-purple-300 border border-purple-500/40 hover:bg-purple-600/30 transition flex items-center gap-1.5 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+          <span>Auto Explore (Frontier)</span>
+        </button>
+
+        <button onclick="resetSlamMap()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">
+          Reset Map
+        </button>
+
+        <button onclick="resetRobotPose()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">
+          Reset Robot
+        </button>
+
+        <button onclick="toggleAudio()" id="btnAudio" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 transition flex items-center gap-1">
+          <span id="audioIcon">🔇</span> Audio
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 mb-4">
+    
+    <!-- LEFT COLUMN: PRIMARY SIMULATOR CANVAS (7 Cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+      
+      <!-- Canvas Container -->
+      <div class="relative bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col">
+        
+        <!-- Viewport Controls / Tabs -->
+        <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Main Viewport</span>
+            <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">
+              <button onclick="setViewMode('fused')" id="btnViewFused" class="px-2.5 py-1 rounded-md bg-cyan-600 text-white shadow">
+                Fused View (World + SLAM)
+              </button>
+              <button onclick="setViewMode('slam')" id="btnViewSlam" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">
+                Occupancy Grid Map
+              </button>
+              <button onclick="setViewMode('world')" id="btnViewWorld" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">
+                Ground Truth Only
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span class="inline-flex items-center gap-1">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> LiDAR Rays
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Global Path
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Goal
+            </span>
+          </div>
+        </div>
+
+        <!-- The Main 2D Simulation Canvas -->
+        <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 cursor-crosshair">
+          <canvas id="simCanvas" width="800" height="600" class="w-full h-full block"></canvas>
+
+          <!-- Interactive Overlay Tooltip / Helper Hint -->
+          <div id="canvasOverlayHint" class="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-slate-300 pointer-events-none flex items-center gap-2 shadow-lg">
+            <span class="text-cyan-400 font-bold">Left Click:</span> Set 2D Nav Goal &bull; <span class="text-amber-400 font-bold">Right Click / Drag:</span> Draw Obstacle &bull; <span class="text-emerald-400 font-bold">WASD:</span> Manual Drive
+          </div>
+
+          <!-- Active Goal Marker Toast -->
+          <div id="goalToast" class="absolute top-3 left-3 bg-emerald-500/20 border border-emerald-500/40 backdrop-blur-md text-emerald-300 text-xs px-3 py-1 rounded-lg hidden font-semibold flex items-center gap-2">
+            <span class="pulse-indicator w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="goalToastText">Navigating to Waypoint...</span>
+          </div>
+        </div>
+
+        <!-- Simulation Speed & Tool Controls -->
+        <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400 font-medium">Sim Speed:</span>
+            <button onclick="setSimSpeed(0.5, this)" class="speed-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">0.5x</button>
+            <button onclick="setSimSpeed(1.0, this)" class="speed-btn px-2 py-0.5 rounded bg-cyan-600 text-white font-bold">1x</button>
+            <button onclick="setSimSpeed(2.0, this)" class="speed-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">2x</button>
+            <button onclick="setSimSpeed(4.0, this)" class="speed-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">4x</button>
+            <button onclick="toggleSimPause()" id="btnPause" class="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold">
+              Pause
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-1 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="chkDynamicObstacles" onchange="toggleDynamicObstacles(this.checked)" checked class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0">
+              <span>Moving Pedestrians</span>
+            </label>
+            <label class="flex items-center gap-1 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="chkSensorNoise" onchange="toggleSensorNoise(this.checked)" checked class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0">
+              <span>LiDAR Noise</span>
+            </label>
+            <label class="flex items-center gap-1 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="chkInflation" onchange="toggleCostmapInflation(this.checked)" checked class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0">
+              <span>Costmap Inflation</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Teleoperation & Dynamic Drive Controls -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Virtual Joystick & Manual Teleop -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Manual Teleoperation</span>
+            <span class="text-[11px] font-mono text-cyan-400">WASD / Arrow Keys</span>
+          </div>
+
+          <div class="flex items-center justify-around py-1">
+            <!-- Virtual Joystick Touch Area -->
+            <div id="joystickZone" class="w-28 h-28 rounded-full bg-slate-950 border-2 border-slate-700 relative flex items-center justify-center cursor-pointer shadow-inner joystick-base">
+              <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-600 to-sky-400 absolute shadow-lg shadow-cyan-500/30 transition-transform duration-75" id="joystickKnob"></div>
+            </div>
+
+            <!-- D-Pad Buttons -->
+            <div class="grid grid-cols-3 gap-1.5 w-32">
+              <div></div>
+              <button onmousedown="sendManualCmd(0.8, 0)" onmouseup="sendManualCmd(0,0)" class="h-10 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-cyan-600 text-white font-bold flex items-center justify-center shadow">▲</button>
+              <div></div>
+              <button onmousedown="sendManualCmd(0, 1.8)" onmouseup="sendManualCmd(0,0)" class="h-10 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-cyan-600 text-white font-bold flex items-center justify-center shadow">◀</button>
+              <button onclick="emergencyStop()" class="h-10 rounded-lg bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center shadow">STOP</button>
+              <button onmousedown="sendManualCmd(0, -1.8)" onmouseup="sendManualCmd(0,0)" class="h-10 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-cyan-600 text-white font-bold flex items-center justify-center shadow">▶</button>
+              <div></div>
+              <button onmousedown="sendManualCmd(-0.8, 0)" onmouseup="sendManualCmd(0,0)" class="h-10 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-cyan-600 text-white font-bold flex items-center justify-center shadow">▼</button>
+              <div></div>
+            </div>
+          </div>
+
+          <!-- Speed slider -->
+          <div class="mt-2 flex items-center gap-3 text-xs text-slate-400">
+            <span>Max Vel:</span>
+            <input type="range" id="maxSpeedSlider" min="0.2" max="1.5" step="0.1" value="0.8" oninput="updateMaxSpeed(this.value)" class="flex-1 accent-cyan-400">
+            <span id="maxSpeedVal" class="font-mono text-cyan-300 w-12 text-right">0.8 m/s</span>
+          </div>
+        </div>
+
+        <!-- SLAM Algorithms & Controller Status -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Navigation Stack Status</span>
+            <span id="navModeIndicator" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold">
+              STANDBY
+            </span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-slate-800">
+              <span class="text-slate-400">Global Planner (A*):</span>
+              <span id="globalPlanStatus" class="font-mono text-emerald-400 font-semibold">Ready / Optimal</span>
+            </div>
+            <div class="flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-slate-800">
+              <span class="text-slate-400">Local Planner (DWA):</span>
+              <span id="localPlanStatus" class="font-mono text-cyan-400 font-semibold">Active (Dynamic Window)</span>
+            </div>
+            <div class="flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-slate-800">
+              <span class="text-slate-400">Scan Matcher (ICP):</span>
+              <span id="scanMatchStatus" class="font-mono text-purple-400 font-semibold">Locked (98.4% Corr)</span>
+            </div>
+            <div class="flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-slate-800">
+              <span class="text-slate-400">Loop Closures Detected:</span>
+              <span id="loopClosureCount" class="font-mono text-amber-400 font-bold">0</span>
+            </div>
+          </div>
+
+          <div class="mt-2 flex gap-2">
+            <button onclick="triggerLoopClosureTest()" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+              Test Loop Closure
+            </button>
+            <button onclick="spawnDynamicObstacle()" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 transition">
+              + Add Obstacle
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: SENSOR SUITE & TELEMETRY HUD (5 Cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      
+      <!-- Sensor Display 1: 360° LiDAR Polar Radar Scope -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-cyan-400 pulse-indicator"></div>
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">360° RPLiDAR A1 Stream</span>
+          </div>
+          <span class="text-[11px] font-mono text-cyan-400">360 Beams &bull; 10 Hz &bull; 8m</span>
+        </div>
+
+        <div class="relative w-full aspect-square max-h-[220px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+          <canvas id="lidarRadarCanvas" width="240" height="220" class="w-full h-full block"></canvas>
+          <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div class="w-full h-full border border-cyan-500/10 rounded-full scale-75"></div>
+            <div class="w-full h-full border border-cyan-500/10 rounded-full scale-50"></div>
+            <div class="w-full h-full border border-cyan-500/10 rounded-full scale-25"></div>
+            <!-- Crosshairs -->
+            <div class="absolute w-full h-[1px] bg-cyan-500/15"></div>
+            <div class="absolute h-full w-[1px] bg-cyan-500/15"></div>
+          </div>
+          <div class="absolute bottom-1 right-2 text-[10px] font-mono text-cyan-400/70">
+            Min Dist: <span id="minLidarDistVal" class="text-white font-bold">0.82m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sensor Display 2: Simulated Front RGB-D / Feature Tracking Camera -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">RGB-D Vision & AprilTag HUD</span>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-400">FOV 70° &bull; 30 FPS</span>
+        </div>
+
+        <div class="relative w-full h-32 bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+          <canvas id="cameraCanvas" width="320" height="128" class="w-full h-full block"></canvas>
+          <!-- Camera HUD Overlay -->
+          <div class="absolute top-1.5 left-2 text-[10px] font-mono text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
+            ORB Features: <span id="cameraFeatureCount" class="text-white font-bold">24</span>
+          </div>
+          <div class="absolute top-1.5 right-2 text-[10px] font-mono text-cyan-400 bg-black/60 px-1.5 py-0.5 rounded border border-cyan-500/30">
+            Visual Odom: <span id="voStatus" class="text-white font-bold">TRACKING</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telemetry & Kinematics Dashboard -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
+        <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Robot Kinematics & SLAM Telemetry</span>
+          <span class="text-[10px] font-mono text-slate-400">EKF STATE VECTOR [X Y θ v ω]</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Pose X</span>
+            <span id="telX" class="text-sm font-bold text-cyan-400">+0.00 m</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Pose Y</span>
+            <span id="telY" class="text-sm font-bold text-cyan-400">+0.00 m</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Heading (θ)</span>
+            <span id="telTheta" class="text-sm font-bold text-cyan-400">0.0°</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Linear Vel (v)</span>
+            <span id="telV" class="text-sm font-bold text-emerald-400">0.00 m/s</span>
+          </div>
+
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Angular Vel (ω)</span>
+            <span id="telOmega" class="text-sm font-bold text-emerald-400">0.00 rad/s</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Left Motor RPM</span>
+            <span id="telRpmL" class="text-sm font-bold text-indigo-400">0 RPM</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Right Motor RPM</span>
+            <span id="telRpmR" class="text-sm font-bold text-indigo-400">0 RPM</span>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block">Map Coverage</span>
+            <span id="telCoverage" class="text-sm font-bold text-amber-400">0.0%</span>
+          </div>
+        </div>
+
+        <!-- SLAM Confidence Progress Bar -->
+        <div class="mt-3 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+          <div class="flex justify-between text-[11px] mb-1">
+            <span class="text-slate-400 font-medium">EKF Localization Confidence:</span>
+            <span id="slamConfidenceText" class="font-mono text-cyan-300 font-bold">99.2%</span>
+          </div>
+          <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div id="slamConfidenceBar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-300" style="width: 99.2%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER / QUICK INFO & LINKS -->
+  <footer class="max-w-7xl mx-auto w-full pt-3 border-t border-slate-800 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+    <div>
+      <span class="font-bold text-slate-300">RoboNav-SLAM v2.4</span> &bull; State Level Sasthrolsavam Robotics Platform &bull; Lekshmivilasam Labs
+    </div>
+    <div class="flex items-center gap-4 text-slate-400 font-medium">
+      <span>LiDAR: RPLIDAR A1 (360° 12m)</span>
+      <span>Controller: ESP32 + ROS2</span>
+      <span>Planner: A* & DWA</span>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- SIMULATION ENGINE SCRIPT (Complete Standalone SLAM, LiDAR & Nav Logic)    -->
+  <!-- ========================================================================= -->
+  <script>
+    // --- AUDIO SYNTHESIZER (Pure Web Audio API, Zero Assets Needed) ---
+    let audioCtx = null;
+    let audioEnabled = false;
+    let motorOsc = null;
+    let motorGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContext();
+          
+          motorOsc = audioCtx.createOscillator();
+          motorGain = audioCtx.createGain();
+          motorOsc.type = 'sawtooth';
+          motorOsc.frequency.setValueAtTime(60, audioCtx.currentTime);
+          motorGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+          
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(220, audioCtx.currentTime);
+          
+          motorOsc.connect(filter);
+          filter.connect(motorGain);
+          motorGain.connect(audioCtx.destination);
+          motorOsc.start();
+        } catch (e) {
+          console.warn("Audio initialization failed:", e);
+        }
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('btnAudio');
+      const icon = document.getElementById('audioIcon');
+      if (audioEnabled) {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        btn.classList.add('bg-cyan-600', 'text-white');
+        btn.classList.remove('bg-slate-800', 'text-slate-400');
+        icon.textContent = '🔊';
+      } else {
+        if (audioCtx && motorGain) motorGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        btn.classList.remove('bg-cyan-600', 'text-white');
+        btn.classList.add('bg-slate-800', 'text-slate-400');
+        icon.textContent = '🔇';
+      }
+    }
+
+    function playBeep(freq, duration, type='sine') {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playGoalReachedSound() {
+      if (!audioEnabled || !audioCtx) return;
+      playBeep(587.33, 0.12);
+      setTimeout(() => playBeep(880.00, 0.25), 120);
+    }
+
+    // --- SIMULATION CONSTANTS & CONFIGURATION ---
+    const WORLD_WIDTH = 800;  // Simulation coordinate width
+    const WORLD_HEIGHT = 600; // Simulation coordinate height
+    const GRID_RES = 10;      // 10px per occupancy grid cell
+    const GRID_COLS = WORLD_WIDTH / GRID_RES; // 80
+    const GRID_ROWS = WORLD_HEIGHT / GRID_RES; // 60
+    const LIDAR_BEAMS = 360;  // 360 degree laser beams
+    const LIDAR_MAX_RANGE = 280; // in world pixels (~9.3m)
+    const ROBOT_RADIUS = 16;  // Robot physical collision circle radius (pixels)
+    const WHEEL_BASE = 24;    // Distance between differential wheels (pixels)
+
+    // Canvas & 2D Contexts
+    const simCanvas = document.getElementById('simCanvas');
+    const simCtx = simCanvas.getContext('2d');
+    const lidarCanvas = document.getElementById('lidarRadarCanvas');
+    const lidarCtx = lidarCanvas.getContext('2d');
+    const cameraCanvas = document.getElementById('cameraCanvas');
+    const cameraCtx = cameraCanvas.getContext('2d');
+
+    // UI elements
+    const navModeIndicator = document.getElementById('navModeIndicator');
+    const goalToast = document.getElementById('goalToast');
+    const goalToastText = document.getElementById('goalToastText');
+    const loopClosureCounterEl = document.getElementById('loopClosureCount');
+
+    // --- STATE VARIABLES ---
+    let simSpeed = 1.0;
+    let isPaused = false;
+    let viewMode = 'fused'; // 'fused', 'slam', 'world'
+    let enableDynamicObstacles = true;
+    let enableSensorNoise = true;
+    let enableCostmapInflation = true;
+    let maxSpeed = 0.8; // m/s scale
+
+    // Robot Kinematic State (Ground Truth)
+    const robot = {
+      x: 100,
+      y: 100,
+      theta: 0, // Radians
+      v: 0,
+      omega: 0,
+      targetV: 0,
+      targetOmega: 0,
+      trail: [],
+      maxTrail: 200
+    };
+
+    // SLAM Estimated State
+    const slamRobot = {
+      x: 100,
+      y: 100,
+      theta: 0,
+      odomX: 100,
+      odomY: 100,
+      odomTheta: 0,
+      confidence: 99.2,
+      loopClosures: 0
+    };
+
+    // Navigation State
+    let navMode = 'IDLE'; // 'IDLE', 'MANUAL', 'GOAL_NAV', 'FRONTIER_EXPLORE'
+    let navGoal = null;
+    let globalPath = [];
+    let dwaBestTrajectory = [];
+    let frontierGoals = [];
+    let activeFrontier = null;
+    let isDrawingObstacle = false;
+    let drawObstaclePoints = [];
+
+    // Occupancy Grid Map (Log-Odds)
+    let logOddsMap = new Float32Array(GRID_COLS * GRID_ROWS).fill(0);
+    let costmap = new Float32Array(GRID_COLS * GRID_ROWS).fill(0);
+
+    // World Map Geometry
+    let staticObstacles = [];
+    let dynamicObstacles = [];
+    let fiducialMarkers = [];
+
+    // LiDAR Readings array
+    let lidarScan = [];
+
+    // --- MAP PRESETS GENERATOR ---
+    function loadPresetMap(presetName) {
+      staticObstacles = [];
+      dynamicObstacles = [];
+      fiducialMarkers = [];
+      globalPath = [];
+      navGoal = null;
+      activeFrontier = null;
+
+      // Outer Boundary Walls
+      addWall(15, 15, WORLD_WIDTH - 15, 15);
+      addWall(WORLD_WIDTH - 15, 15, WORLD_WIDTH - 15, WORLD_HEIGHT - 15);
+      addWall(WORLD_WIDTH - 15, WORLD_HEIGHT - 15, 15, WORLD_HEIGHT - 15);
+      addWall(15, WORLD_HEIGHT - 15, 15, 15);
+
+      if (presetName === 'arena') {
+        // Kerala Sasthrolsavam Robotics Arena
+        addBox(120, 200, 40, 180); // Booth Left
+        addBox(280, 80, 180, 40);  // Central Divider North
+        addBox(280, 420, 180, 40); // Central Divider South
+        addBox(420, 220, 50, 120); // Central Display Pillar
+        addBox(600, 160, 40, 240); // Right Booth
+        addBox(200, 320, 30, 30);  // Small Traffic cone
+        addBox(520, 380, 30, 30);  // Small Trophy Box
+
+        fiducialMarkers.push({ id: 0, x: 30, y: 150, name: "TAG_START" });
+        fiducialMarkers.push({ id: 1, x: 420, y: 180, name: "TAG_PILLAR_N" });
+        fiducialMarkers.push({ id: 2, x: 760, y: 300, name: "TAG_FINISH_GATE" });
+        fiducialMarkers.push({ id: 3, x: 370, y: 560, name: "TAG_CHARGING_DOCK" });
+
+        dynamicObstacles.push({ x: 220, y: 140, vx: 0.6, vy: 0.4, radius: 14, color: '#f59e0b', name: 'Judge A' });
+        dynamicObstacles.push({ x: 520, y: 460, vx: -0.5, vy: -0.5, radius: 14, color: '#f59e0b', name: 'Student B' });
+
+        robot.x = 90;
+        robot.y = 90;
+        robot.theta = 0;
+      } 
+      else if (presetName === 'apartment') {
+        addWall(280, 15, 280, 220);
+        addWall(280, 300, 280, 585);
+        addWall(280, 300, 550, 300);
+        addWall(550, 15, 550, 200);
+        addWall(630, 200, 785, 200);
+
+        addBox(60, 420, 90, 120);  // Sofa Bed
+        addBox(340, 60, 100, 70);  // Dining Table
+        addBox(620, 60, 80, 50);   // Kitchen Counter
+        addBox(640, 420, 100, 110); // Master Bed
+
+        fiducialMarkers.push({ id: 10, x: 30, y: 50, name: "LIVING_ROOM" });
+        fiducialMarkers.push({ id: 11, x: 700, y: 40, name: "KITCHEN" });
+        fiducialMarkers.push({ id: 12, x: 720, y: 560, name: "BEDROOM_1" });
+
+        dynamicObstacles.push({ x: 380, y: 220, vx: 0.5, vy: 0, radius: 12, color: '#f59e0b', name: 'Pet Cat' });
+
+        robot.x = 80;
+        robot.y = 80;
+        robot.theta = 0.5;
+      }
+      else if (presetName === 'warehouse') {
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            addBox(140 + col * 200, 90 + row * 160, 110, 60);
+          }
+        }
+        fiducialMarkers.push({ id: 20, x: 50, y: 300, name: "DOCK_A" });
+        fiducialMarkers.push({ id: 21, x: 750, y: 300, name: "DOCK_B" });
+
+        dynamicObstacles.push({ x: 300, y: 280, vx: 0.8, vy: 0, radius: 16, color: '#f43f5e', name: 'Automated Cart' });
+        dynamicObstacles.push({ x: 500, y: 440, vx: -0.6, vy: 0.3, radius: 14, color: '#f59e0b', name: 'Worker' });
+
+        robot.x = 60;
+        robot.y = 300;
+        robot.theta = 0;
+      }
+      else if (presetName === 'hospital') {
+        addWall(15, 260, 320, 260);
+        addWall(400, 260, 785, 260);
+        addWall(15, 340, 320, 340);
+        addWall(400, 340, 785, 340);
+
+        addWall(160, 15, 160, 200);
+        addWall(320, 15, 320, 200);
+        addWall(480, 15, 480, 200);
+        addWall(640, 15, 640, 200);
+
+        addBox(60, 60, 50, 70);
+        addBox(220, 60, 50, 70);
+        addBox(540, 60, 50, 70);
+        addBox(100, 440, 140, 80);
+
+        fiducialMarkers.push({ id: 30, x: 30, y: 300, name: "RECEPTION" });
+        fiducialMarkers.push({ id: 31, x: 750, y: 300, name: "ICU_WARD" });
+
+        dynamicObstacles.push({ x: 360, y: 300, vx: 0.7, vy: 0, radius: 14, color: '#f59e0b', name: 'Nurse Trolley' });
+
+        robot.x = 60;
+        robot.y = 300;
+        robot.theta = 0;
+      }
+      else if (presetName === 'maze') {
+        addWall(160, 15, 160, 440);
+        addWall(300, 160, 300, 585);
+        addWall(440, 15, 440, 440);
+        addWall(580, 160, 580, 585);
+        addWall(680, 15, 680, 340);
+
+        robot.x = 80;
+        robot.y = 80;
+        robot.theta = Math.PI/2;
+      }
+      else {
+        robot.x = WORLD_WIDTH / 2;
+        robot.y = WORLD_HEIGHT / 2;
+        robot.theta = 0;
+      }
+
+      resetSlamMap();
+    }
+
+    function addWall(x1, y1, x2, y2) {
+      staticObstacles.push({ type: 'wall', x1, y1, x2, y2 });
+    }
+
+    function addBox(x, y, w, h) {
+      addWall(x, y, x + w, y);
+      addWall(x + w, y, x + w, y + h);
+      addWall(x + w, y + h, x, y + h);
+      addWall(x, y + h, x, y);
+      staticObstacles.push({ type: 'box', x, y, w, h });
+    }
+
+    function resetSlamMap() {
+      logOddsMap.fill(0);
+      costmap.fill(0);
+      slamRobot.x = robot.x;
+      slamRobot.y = robot.y;
+      slamRobot.theta = robot.theta;
+      slamRobot.odomX = robot.x;
+      slamRobot.odomY = robot.y;
+      slamRobot.odomTheta = robot.theta;
+      slamRobot.confidence = 99.2;
+      slamRobot.loopClosures = 0;
+      robot.trail = [];
+      globalPath = [];
+      dwaBestTrajectory = [];
+      navGoal = null;
+      activeFrontier = null;
+      frontierGoals = [];
+      updateLoopClosureUI();
+    }
+
+    function resetRobotPose() {
+      robot.x = 90;
+      robot.y = 90;
+      robot.theta = 0;
+      robot.v = 0;
+      robot.omega = 0;
+      robot.targetV = 0;
+      robot.targetOmega = 0;
+      slamRobot.x = robot.x;
+      slamRobot.y = robot.y;
+      slamRobot.theta = robot.theta;
+      slamRobot.odomX = robot.x;
+      slamRobot.odomY = robot.y;
+      slamRobot.odomTheta = robot.theta;
+      globalPath = [];
+      dwaBestTrajectory = [];
+      navGoal = null;
+      activeFrontier = null;
+      setNavMode('IDLE');
+    }
+
+    // --- LINE INTERSECTION & GEOMETRY HELPERS (Rock-Solid 2D Math) ---
+    function lineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+      const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+      if (Math.abs(den) < 1e-6) return null;
+      
+      const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
+      const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+      
+      if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+        const ix = x1 + t * (x2 - x1);
+        const iy = y1 + t * (y2 - y1);
+        const dist = Math.hypot(ix - x1, iy - y1);
+        return { x: ix, y: iy, dist: dist };
+      }
+      return null;
+    }
+
+    function rayCircleIntersection(rx, ry, angle, cx, cy, radius) {
+      const dx = Math.cos(angle);
+      const dy = Math.sin(angle);
+      const fx = rx - cx;
+      const fy = ry - cy;
+      const a = dx * dx + dy * dy;
+      const b = 2 * (fx * dx + fy * dy);
+      const c = (fx * fx + fy * fy) - radius * radius;
+      const disc = b * b - 4 * a * c;
+      if (disc < 0) return null;
+      const t1 = (-b - Math.sqrt(disc)) / (2 * a);
+      if (t1 >= 0) return t1;
+      const t2 = (-b + Math.sqrt(disc)) / (2 * a);
+      if (t2 >= 0) return t2;
+      return null;
+    }
+
+    // --- 360° LIDAR RAYCASTING SIMULATION ---
+    function computeLidarScan() {
+      lidarScan = [];
+      let minDistance = 9999;
+      const noiseAmp = enableSensorNoise ? 1.5 : 0.0;
+
+      for (let i = 0; i < LIDAR_BEAMS; i++) {
+        const rayAngle = robot.theta + (i * 2 * Math.PI / LIDAR_BEAMS);
+        const cosA = Math.cos(rayAngle);
+        const sinA = Math.sin(rayAngle);
+
+        let closestDist = LIDAR_MAX_RANGE;
+        let hitX = robot.x + cosA * LIDAR_MAX_RANGE;
+        let hitY = robot.y + sinA * LIDAR_MAX_RANGE;
+        let hit = false;
+
+        // Static Wall Collisions
+        for (let j = 0; j < staticObstacles.length; j++) {
+          const obs = staticObstacles[j];
+          if (obs.type === 'wall') {
+            const pt = lineIntersection(robot.x, robot.y, robot.x + cosA * LIDAR_MAX_RANGE, robot.y + sinA * LIDAR_MAX_RANGE, obs.x1, obs.y1, obs.x2, obs.y2);
+            if (pt && pt.dist < closestDist) {
+              closestDist = pt.dist;
+              hitX = pt.x;
+              hitY = pt.y;
+              hit = true;
+            }
+          }
+        }
+
+        // Dynamic Obstacle Collisions
+        if (enableDynamicObstacles) {
+          for (let j = 0; j < dynamicObstacles.length; j++) {
+            const dyn = dynamicObstacles[j];
+            const d = rayCircleIntersection(robot.x, robot.y, rayAngle, dyn.x, dyn.y, dyn.radius);
+            if (d !== null && d < closestDist) {
+              closestDist = d;
+              hitX = robot.x + cosA * d;
+              hitY = robot.y + sinA * d;
+              hit = true;
+            }
+          }
+        }
+
+        // Add sensor noise
+        if (hit && enableSensorNoise) {
+          const noise = (Math.random() - 0.5) * noiseAmp;
+          closestDist = Math.max(8, closestDist + noise);
+          hitX = robot.x + cosA * closestDist;
+          hitY = robot.y + sinA * closestDist;
+        }
+
+        if (closestDist < minDistance) minDistance = closestDist;
+
+        lidarScan.push({
+          beamIndex: i,
+          angle: rayAngle,
+          dist: closestDist,
+          hitX: hitX,
+          hitY: hitY,
+          hit: hit
+        });
+      }
+
+      const distInMeters = (minDistance / 30).toFixed(2);
+      const minEl = document.getElementById('minLidarDistVal');
+      if (minEl) minEl.textContent = distInMeters + 'm';
+    }
+
+    // --- 2D OCCUPANCY GRID SLAM ENGINE ---
+    const L_OCC = 0.85;
+    const L_FREE = -0.35;
+    const L_MIN = -5.0;
+    const L_MAX = 5.0;
+
+    function updateOccupancyGridSLAM() {
+      // Filtered scan matching pose tracking
+      const correctionWeight = 0.92;
+      slamRobot.x = slamRobot.x * (1 - correctionWeight) + robot.x * correctionWeight;
+      slamRobot.y = slamRobot.y * (1 - correctionWeight) + robot.y * correctionWeight;
+      slamRobot.theta = slamRobot.theta * (1 - correctionWeight) + robot.theta * correctionWeight;
+
+      const rGridX = Math.floor(slamRobot.x / GRID_RES);
+      const rGridY = Math.floor(slamRobot.y / GRID_RES);
+
+      for (let i = 0; i < LIDAR_BEAMS; i += 2) {
+        const beam = lidarScan[i];
+        if (!beam) continue;
+
+        const endGridX = Math.floor(beam.hitX / GRID_RES);
+        const endGridY = Math.floor(beam.hitY / GRID_RES);
+
+        bresenhamRaytrace(rGridX, rGridY, endGridX, endGridY, beam.hit);
+      }
+
+      updateCostmapInflation();
+    }
+
+    function bresenhamRaytrace(x0, y0, x1, y1, hitObstacle) {
+      let dx = Math.abs(x1 - x0);
+      let dy = Math.abs(y1 - y0);
+      let sx = (x0 < x1) ? 1 : -1;
+      let sy = (y0 < y1) ? 1 : -1;
+      let err = dx - dy;
+
+      let cx = x0;
+      let cy = y0;
+
+      while (true) {
+        const isEnd = (cx === x1 && cy === y1);
+        if (cx >= 0 && cx < GRID_COLS && cy >= 0 && cy < GRID_ROWS) {
+          const idx = cy * GRID_COLS + cx;
+          if (isEnd && hitObstacle) {
+            logOddsMap[idx] = Math.min(L_MAX, logOddsMap[idx] + L_OCC);
+          } else if (!isEnd) {
+            logOddsMap[idx] = Math.max(L_MIN, logOddsMap[idx] + L_FREE);
+          }
+        }
+
+        if (isEnd) break;
+        let e2 = 2 * err;
+        if (e2 > -dy) { err -= dy; cx += sx; }
+        if (e2 < dx) { err += dx; cy += sy; }
+      }
+    }
+
+    function updateCostmapInflation() {
+      costmap.fill(0);
+      const inflationRadius = enableCostmapInflation ? 2 : 1;
+
+      for (let y = 0; y < GRID_ROWS; y++) {
+        for (let x = 0; x < GRID_COLS; x++) {
+          const idx = y * GRID_COLS + x;
+          if (logOddsMap[idx] > 1.0) {
+            for (let dy = -inflationRadius; dy <= inflationRadius; dy++) {
+              for (let dx = -inflationRadius; dx <= inflationRadius; dx++) {
+                const nx = x + dx;
+                const ny = y + dy;
+                if (nx >= 0 && nx < GRID_COLS && ny >= 0 && ny < GRID_ROWS) {
+                  const dist = Math.hypot(dx, dy);
+                  const nidx = ny * GRID_COLS + nx;
+                  const cost = Math.max(0, 255 * (1 - dist / (inflationRadius + 1)));
+                  if (cost > costmap[nidx]) costmap[nidx] = cost;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // --- A* GLOBAL PATH PLANNER ---
+    function planGlobalPathAStar(startX, startY, goalX, goalY) {
+      const sCol = Math.floor(startX / GRID_RES);
+      const sRow = Math.floor(startY / GRID_RES);
+      const gCol = Math.floor(goalX / GRID_RES);
+      const gRow = Math.floor(goalY / GRID_RES);
+
+      if (gCol < 0 || gCol >= GRID_COLS || gRow < 0 || gRow >= GRID_ROWS) return [];
+
+      const openSet = [];
+      const cameFrom = new Map();
+      const gScore = new Float32Array(GRID_COLS * GRID_ROWS).fill(Infinity);
+      const fScore = new Float32Array(GRID_COLS * GRID_ROWS).fill(Infinity);
+
+      const startIdx = sRow * GRID_COLS + sCol;
+      gScore[startIdx] = 0;
+      fScore[startIdx] = Math.hypot(sCol - gCol, sRow - gRow);
+      openSet.push({ col: sCol, row: sRow, f: fScore[startIdx] });
+
+      const closedSet = new Uint8Array(GRID_COLS * GRID_ROWS);
+
+      const neighbors = [
+        { dc: 1, dr: 0, cost: 1.0 }, { dc: -1, dr: 0, cost: 1.0 },
+        { dc: 0, dr: 1, cost: 1.0 }, { dc: 0, dr: -1, cost: 1.0 },
+        { dc: 1, dr: 1, cost: 1.414 }, { dc: -1, dr: 1, cost: 1.414 },
+        { dc: 1, dr: -1, cost: 1.414 }, { dc: -1, dr: -1, cost: 1.414 }
+      ];
+
+      let iterations = 0;
+      while (openSet.length > 0 && iterations++ < 3500) {
+        let bestIdx = 0;
+        for (let i = 1; i < openSet.length; i++) {
+          if (openSet[i].f < openSet[bestIdx].f) bestIdx = i;
+        }
+
+        const current = openSet.splice(bestIdx, 1)[0];
+        const currentIdx = current.row * GRID_COLS + current.col;
+
+        if (current.col === gCol && current.row === gRow) {
+          const path = [];
+          let curr = currentIdx;
+          while (cameFrom.has(curr)) {
+            const r = Math.floor(curr / GRID_COLS);
+            const c = curr % GRID_COLS;
+            path.push({ x: (c + 0.5) * GRID_RES, y: (r + 0.5) * GRID_RES });
+            curr = cameFrom.get(curr);
+          }
+          path.reverse();
+          return smoothPath(path);
+        }
+
+        closedSet[currentIdx] = 1;
+
+        for (let i = 0; i < neighbors.length; i++) {
+          const n = neighbors[i];
+          const nc = current.col + n.dc;
+          const nr = current.row + n.dr;
+
+          if (nc < 0 || nc >= GRID_COLS || nr < 0 || nr >= GRID_ROWS) continue;
+          const nIdx = nr * GRID_COLS + nc;
+          if (closedSet[nIdx]) continue;
+
+          const occ = logOddsMap[nIdx];
+          const costVal = costmap[nIdx];
+          if (occ > 1.2 || costVal > 180) continue;
+
+          const tentativeG = gScore[currentIdx] + n.cost + (costVal / 255) * 4.0;
+          if (tentativeG < gScore[nIdx]) {
+            cameFrom.set(nIdx, currentIdx);
+            gScore[nIdx] = tentativeG;
+            fScore[nIdx] = tentativeG + Math.hypot(nc - gCol, nr - gRow);
+
+            if (!openSet.some(item => item.col === nc && item.row === nr)) {
+              openSet.push({ col: nc, row: nr, f: fScore[nIdx] });
+            }
+          }
+        }
+      }
+
+      return [];
+    }
+
+    function smoothPath(path) {
+      if (path.length <= 2) return path;
+      const smoothed = [path[0]];
+      for (let i = 1; i < path.length - 1; i++) {
+        smoothed.push({
+          x: (path[i-1].x + path[i].x + path[i+1].x) / 3,
+          y: (path[i-1].y + path[i].y + path[i+1].y) / 3
+        });
+      }
+      smoothed.push(path[path.length - 1]);
+      return smoothed;
+    }
+
+    // --- DYNAMIC WINDOW APPROACH (DWA) LOCAL PLANNER ---
+    function computeDWACommand() {
+      if (!navGoal || globalPath.length === 0) return { v: 0, omega: 0 };
+
+      let targetWp = globalPath[0];
+      for (let i = 0; i < globalPath.length; i++) {
+        const d = Math.hypot(globalPath[i].x - robot.x, globalPath[i].y - robot.y);
+        if (d > 25) {
+          targetWp = globalPath[i];
+          break;
+        }
+      }
+
+      const distToGoal = Math.hypot(navGoal.x - robot.x, navGoal.y - robot.y);
+      if (distToGoal < 18) {
+        onGoalReached();
+        return { v: 0, omega: 0 };
+      }
+
+      const maxV = maxSpeed * 1.5;
+      const maxW = 2.4;
+      const vSamples = 7;
+      const wSamples = 13;
+
+      let bestScore = -Infinity;
+      let bestV = 0;
+      let bestW = 0;
+      let bestTraj = [];
+
+      for (let vi = 0; vi < vSamples; vi++) {
+        const testV = (vi / (vSamples - 1)) * maxV;
+        for (let wi = 0; wi < wSamples; wi++) {
+          const testW = -maxW + (wi / (wSamples - 1)) * (2 * maxW);
+
+          const simTime = 1.0;
+          const dt = 0.15;
+          const steps = Math.floor(simTime / dt);
+          let px = robot.x;
+          let py = robot.y;
+          let ptheta = robot.theta;
+          let minObsDist = 999;
+          let traj = [];
+
+          let collided = false;
+          for (let s = 0; s < steps; s++) {
+            px += testV * Math.cos(ptheta) * dt * 30;
+            py += testV * Math.sin(ptheta) * dt * 30;
+            ptheta += testW * dt;
+            traj.push({ x: px, y: py });
+
+            if (enableDynamicObstacles) {
+              for (let d_idx = 0; d_idx < dynamicObstacles.length; d_idx++) {
+                const dyn = dynamicObstacles[d_idx];
+                const d = Math.hypot(px - dyn.x, py - dyn.y) - (ROBOT_RADIUS + dyn.radius);
+                if (d < minObsDist) minObsDist = d;
+                if (d <= 2) { collided = true; break; }
+              }
+            }
+
+            const gX = Math.floor(px / GRID_RES);
+            const gY = Math.floor(py / GRID_RES);
+            if (gX < 0 || gX >= GRID_COLS || gY < 0 || gY >= GRID_ROWS || logOddsMap[gY * GRID_COLS + gX] > 1.2) {
+              collided = true;
+              break;
+            }
+          }
+
+          if (collided || minObsDist < 4) continue;
+
+          const angleToWp = Math.atan2(targetWp.y - robot.y, targetWp.x - robot.x);
+          const headingDiff = Math.abs(normalizeAngle(ptheta - angleToWp));
+          const headingScore = Math.PI - headingDiff;
+          const clearanceScore = Math.min(minObsDist, 60);
+          const velocityScore = testV;
+
+          const totalScore = (headingScore * 2.2) + (clearanceScore * 0.8) + (velocityScore * 1.5);
+
+          if (totalScore > bestScore) {
+            bestScore = totalScore;
+            bestV = testV;
+            bestW = testW;
+            bestTraj = traj;
+          }
+        }
+      }
+
+      dwaBestTrajectory = bestTraj;
+      return { v: bestV, omega: bestW };
+    }
+
+    function normalizeAngle(a) {
+      while (a > Math.PI) a -= 2 * Math.PI;
+      while (a < -Math.PI) a += 2 * Math.PI;
+      return a;
+    }
+
+    // --- AUTONOMOUS FRONTIER EXPLORATION ---
+    let frontierScanTimer = 0;
+    function updateFrontierExploration() {
+      if (navMode !== 'FRONTIER_EXPLORE') return;
+
+      frontierScanTimer++;
+      if (frontierScanTimer % 40 === 0 || !navGoal) {
+        detectFrontiers();
+      }
+    }
+
+    function detectFrontiers() {
+      frontierGoals = [];
+      for (let y = 1; y < GRID_ROWS - 1; y++) {
+        for (let x = 1; x < GRID_COLS - 1; x++) {
+          const idx = y * GRID_COLS + x;
+          if (logOddsMap[idx] < -0.3) {
+            let hasUnknown = false;
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const nidx = (y + dy) * GRID_COLS + (x + dx);
+                if (Math.abs(logOddsMap[nidx]) < 0.2) {
+                  hasUnknown = true;
+                  break;
+                }
+              }
+              if (hasUnknown) break;
+            }
+
+            if (hasUnknown && costmap[idx] < 80) {
+              frontierGoals.push({ x: (x + 0.5) * GRID_RES, y: (y + 0.5) * GRID_RES, col: x, row: y });
+            }
+          }
+        }
+      }
+
+      if (frontierGoals.length === 0) {
+        playGoalReachedSound();
+        setNavMode('IDLE');
+        if (goalToast) {
+          goalToast.classList.remove('hidden');
+          goalToastText.textContent = '🎉 100% Frontier Exploration Complete!';
+          setTimeout(() => goalToast.classList.add('hidden'), 5000);
+        }
+        return;
+      }
+
+      let bestFrontier = null;
+      let bestScore = -Infinity;
+
+      for (let i = 0; i < frontierGoals.length; i++) {
+        const f = frontierGoals[i];
+        const d = Math.hypot(f.x - robot.x, f.y - robot.y);
+        if (d < 30) continue;
+        const score = 1000 / (d + 20);
+        if (score > bestScore) {
+          bestScore = score;
+          bestFrontier = f;
+        }
+      }
+
+      if (bestFrontier) {
+        activeFrontier = bestFrontier;
+        setNavGoal(bestFrontier.x, bestFrontier.y, 'Exploring Frontier...');
+      }
+    }
+
+    function toggleFrontierExploration() {
+      if (navMode === 'FRONTIER_EXPLORE') {
+        setNavMode('IDLE');
+        navGoal = null;
+        globalPath = [];
+      } else {
+        setNavMode('FRONTIER_EXPLORE');
+        detectFrontiers();
+      }
+    }
+
+    function setNavGoal(x, y, toastMsg = 'Navigating to Waypoint...') {
+      navGoal = { x, y, theta: 0 };
+      globalPath = planGlobalPathAStar(robot.x, robot.y, x, y);
+
+      if (navMode !== 'FRONTIER_EXPLORE') {
+        setNavMode('GOAL_NAV');
+      }
+
+      if (goalToast) {
+        goalToast.classList.remove('hidden');
+        goalToastText.textContent = toastMsg;
+      }
+      playBeep(440, 0.08);
+    }
+
+    function onGoalReached() {
+      playGoalReachedSound();
+      navGoal = null;
+      globalPath = [];
+      dwaBestTrajectory = [];
+      
+      if (navMode === 'GOAL_NAV') {
+        setNavMode('IDLE');
+        if (goalToast) {
+          goalToastText.textContent = '🎯 Target Waypoint Reached!';
+          setTimeout(() => {
+            if (navMode === 'IDLE') goalToast.classList.add('hidden');
+          }, 3000);
+        }
+      } else if (navMode === 'FRONTIER_EXPLORE') {
+        detectFrontiers();
+      }
+    }
+
+    function setNavMode(mode) {
+      navMode = mode;
+      if (navModeIndicator) {
+        navModeIndicator.textContent = mode;
+        if (mode === 'FRONTIER_EXPLORE') {
+          navModeIndicator.className = 'px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold';
+        } else if (mode === 'GOAL_NAV') {
+          navModeIndicator.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold';
+        } else if (mode === 'MANUAL') {
+          navModeIndicator.className = 'px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[10px] font-bold';
+        } else {
+          navModeIndicator.className = 'px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold';
+        }
+      }
+
+      const btnFrontier = document.getElementById('btnFrontier');
+      if (btnFrontier) {
+        if (mode === 'FRONTIER_EXPLORE') {
+          btnFrontier.classList.add('bg-purple-600', 'text-white', 'glow-purple');
+        } else {
+          btnFrontier.classList.remove('bg-purple-600', 'text-white', 'glow-purple');
+        }
+      }
+    }
+
+    // --- MANUAL TELEOPERATION & JOYSTICK ---
+    function sendManualCmd(v, omega) {
+      setNavMode('MANUAL');
+      navGoal = null;
+      globalPath = [];
+      dwaBestTrajectory = [];
+      robot.targetV = v * maxSpeed;
+      robot.targetOmega = omega;
+      if (goalToast) goalToast.classList.add('hidden');
+    }
+
+    function emergencyStop() {
+      robot.v = 0;
+      robot.omega = 0;
+      robot.targetV = 0;
+      robot.targetOmega = 0;
+      navGoal = null;
+      globalPath = [];
+      dwaBestTrajectory = [];
+      setNavMode('IDLE');
+      if (goalToast) goalToast.classList.add('hidden');
+      playBeep(220, 0.2, 'sawtooth');
+    }
+
+    // Virtual Joystick logic
+    const joyZone = document.getElementById('joystickZone');
+    const joyKnob = document.getElementById('joystickKnob');
+    let isJoyActive = false;
+
+    if (joyZone && joyKnob) {
+      function handleJoyMove(e) {
+        if (!isJoyActive) return;
+        const rect = joyZone.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const maxDist = rect.width / 2 - 10;
+        let dx = clientX - centerX;
+        let dy = clientY - centerY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > maxDist) {
+          dx = (dx / dist) * maxDist;
+          dy = (dy / dist) * maxDist;
+        }
+
+        joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+        const normV = -dy / maxDist;
+        const normOmega = -dx / maxDist * 2.2;
+        sendManualCmd(normV, normOmega);
+      }
+
+      function stopJoy() {
+        if (!isJoyActive) return;
+        isJoyActive = false;
+        joyKnob.style.transform = `translate(0px, 0px)`;
+        sendManualCmd(0, 0);
+      }
+
+      joyZone.addEventListener('mousedown', (e) => { isJoyActive = true; handleJoyMove(e); });
+      window.addEventListener('mousemove', handleJoyMove);
+      window.addEventListener('mouseup', stopJoy);
+
+      joyZone.addEventListener('touchstart', (e) => { isJoyActive = true; handleJoyMove(e); e.preventDefault(); }, { passive: false });
+      window.addEventListener('touchmove', handleJoyMove, { passive: false });
+      window.addEventListener('touchend', stopJoy);
+    }
+
+    // Keyboard Controls
+    const keysDown = {};
+    window.addEventListener('keydown', (e) => {
+      keysDown[e.key.toLowerCase()] = true;
+      handleKeyNav();
+    });
+    window.addEventListener('keyup', (e) => {
+      keysDown[e.key.toLowerCase()] = false;
+      handleKeyNav();
+    });
+
+    function handleKeyNav() {
+      let v = 0;
+      let w = 0;
+      if (keysDown['w'] || keysDown['arrowup']) v += 1;
+      if (keysDown['s'] || keysDown['arrowdown']) v -= 1;
+      if (keysDown['a'] || keysDown['arrowleft']) w += 1;
+      if (keysDown['d'] || keysDown['arrowright']) w -= 1;
+
+      if (v !== 0 || w !== 0) {
+        sendManualCmd(v, w * 1.8);
+      } else if (navMode === 'MANUAL') {
+        sendManualCmd(0, 0);
+      }
+    }
+
+    // Canvas Interaction
+    simCanvas.addEventListener('mousedown', (e) => {
+      const rect = simCanvas.getBoundingClientRect();
+      const scaleX = WORLD_WIDTH / rect.width;
+      const scaleY = WORLD_HEIGHT / rect.height;
+      const clickX = (e.clientX - rect.left) * scaleX;
+      const clickY = (e.clientY - rect.top) * scaleY;
+
+      if (e.button === 2) {
+        isDrawingObstacle = true;
+        drawObstaclePoints = [{ x: clickX, y: clickY }];
+      } else {
+        setNavGoal(clickX, clickY);
+      }
+    });
+
+    simCanvas.addEventListener('mousemove', (e) => {
+      if (!isDrawingObstacle) return;
+      const rect = simCanvas.getBoundingClientRect();
+      const scaleX = WORLD_WIDTH / rect.width;
+      const scaleY = WORLD_HEIGHT / rect.height;
+      drawObstaclePoints.push({
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      });
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDrawingObstacle && drawObstaclePoints.length > 1) {
+        for (let i = 0; i < drawObstaclePoints.length - 1; i++) {
+          addWall(drawObstaclePoints[i].x, drawObstaclePoints[i].y, drawObstaclePoints[i+1].x, drawObstaclePoints[i+1].y);
+        }
+        playBeep(320, 0.1);
+      }
+      isDrawingObstacle = false;
+      drawObstaclePoints = [];
+    });
+
+    simCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    // --- PHYSICS & SIMULATION UPDATE ---
+    function updatePhysics(dt) {
+      if (enableDynamicObstacles) {
+        for (let i = 0; i < dynamicObstacles.length; i++) {
+          const dyn = dynamicObstacles[i];
+          dyn.x += dyn.vx * dt * 45 * simSpeed;
+          dyn.y += dyn.vy * dt * 45 * simSpeed;
+
+          if (dyn.x < 30 || dyn.x > WORLD_WIDTH - 30) dyn.vx *= -1;
+          if (dyn.y < 30 || dyn.y > WORLD_HEIGHT - 30) dyn.vy *= -1;
+        }
+      }
+
+      if (navMode === 'GOAL_NAV' || navMode === 'FRONTIER_EXPLORE') {
+        const cmd = computeDWACommand();
+        robot.targetV = cmd.v;
+        robot.targetOmega = cmd.omega;
+      }
+
+      const accelLinear = 3.5 * dt * simSpeed;
+      const accelAngular = 6.0 * dt * simSpeed;
+      robot.v += Math.max(-accelLinear, Math.min(accelLinear, robot.targetV - robot.v));
+      robot.omega += Math.max(-accelAngular, Math.min(accelAngular, robot.targetOmega - robot.omega));
+
+      const prevX = robot.x;
+      const prevY = robot.y;
+      robot.x += robot.v * Math.cos(robot.theta) * dt * 35 * simSpeed;
+      robot.y += robot.v * Math.sin(robot.theta) * dt * 35 * simSpeed;
+      robot.theta = normalizeAngle(robot.theta + robot.omega * dt * simSpeed);
+
+      for (let i = 0; i < staticObstacles.length; i++) {
+        const obs = staticObstacles[i];
+        if (obs.type === 'box') {
+          if (robot.x > obs.x - ROBOT_RADIUS && robot.x < obs.x + obs.w + ROBOT_RADIUS &&
+              robot.y > obs.y - ROBOT_RADIUS && robot.y < obs.y + obs.h + ROBOT_RADIUS) {
+            robot.x = prevX;
+            robot.y = prevY;
+            robot.v = 0;
+            break;
+          }
+        }
+      }
+
+      if (Math.hypot(robot.x - prevX, robot.y - prevY) > 2) {
+        robot.trail.push({ x: robot.x, y: robot.y });
+        if (robot.trail.length > robot.maxTrail) robot.trail.shift();
+      }
+
+      if (audioEnabled && motorGain && motorOsc) {
+        const totalSpeed = Math.abs(robot.v) + Math.abs(robot.omega) * 0.4;
+        const targetVol = totalSpeed > 0.05 ? 0.08 : 0.005;
+        const targetFreq = 50 + totalSpeed * 90;
+        motorGain.gain.setTargetAtTime(targetVol, audioCtx.currentTime, 0.08);
+        motorOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.08);
+      }
+
+      computeLidarScan();
+      updateOccupancyGridSLAM();
+      updateFrontierExploration();
+    }
+
+    // --- RENDERING ROUTINES ---
+    function render() {
+      simCtx.fillStyle = '#050811';
+      simCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+      // Grid Lines
+      simCtx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+      simCtx.lineWidth = 1;
+      for (let x = 0; x < WORLD_WIDTH; x += 40) {
+        simCtx.beginPath(); simCtx.moveTo(x, 0); simCtx.lineTo(x, WORLD_HEIGHT); simCtx.stroke();
+      }
+      for (let y = 0; y < WORLD_HEIGHT; y += 40) {
+        simCtx.beginPath(); simCtx.moveTo(0, y); simCtx.lineTo(WORLD_WIDTH, y); simCtx.stroke();
+      }
+
+      // SLAM Occupancy Grid Map
+      if (viewMode !== 'world') {
+        renderOccupancyGrid(simCtx);
+      }
+
+      // Static Walls
+      if (viewMode !== 'slam') {
+        simCtx.strokeStyle = '#38bdf8';
+        simCtx.lineWidth = 3;
+        simCtx.lineCap = 'round';
+        for (let i = 0; i < staticObstacles.length; i++) {
+          const obs = staticObstacles[i];
+          if (obs.type === 'wall') {
+            simCtx.beginPath();
+            simCtx.moveTo(obs.x1, obs.y1);
+            simCtx.lineTo(obs.x2, obs.y2);
+            simCtx.stroke();
+          } else if (obs.type === 'box') {
+            simCtx.fillStyle = 'rgba(14, 165, 233, 0.15)';
+            simCtx.fillRect(obs.x, obs.y, obs.w, obs.h);
+            simCtx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+          }
+        }
+      }
+
+      // AprilTag Landmarks
+      for (let i = 0; i < fiducialMarkers.length; i++) {
+        const tag = fiducialMarkers[i];
+        simCtx.fillStyle = '#34d399';
+        simCtx.fillRect(tag.x - 5, tag.y - 5, 10, 10);
+        simCtx.strokeStyle = '#059669';
+        simCtx.strokeRect(tag.x - 5, tag.y - 5, 10, 10);
+        simCtx.fillStyle = '#a7f3d0';
+        simCtx.font = '9px JetBrains Mono';
+        simCtx.fillText(`[TAG#${tag.id}]`, tag.x - 12, tag.y - 8);
+      }
+
+      // Dynamic Obstacles
+      if (enableDynamicObstacles && viewMode !== 'slam') {
+        for (let i = 0; i < dynamicObstacles.length; i++) {
+          const dyn = dynamicObstacles[i];
+          simCtx.fillStyle = dyn.color;
+          simCtx.beginPath();
+          simCtx.arc(dyn.x, dyn.y, dyn.radius, 0, Math.PI * 2);
+          simCtx.fill();
+          simCtx.strokeStyle = '#ffffff';
+          simCtx.lineWidth = 1.5;
+          simCtx.stroke();
+
+          simCtx.fillStyle = '#e2e8f0';
+          simCtx.font = '10px Inter';
+          simCtx.fillText(dyn.name, dyn.x - 14, dyn.y - dyn.radius - 4);
+        }
+      }
+
+      // LiDAR Rays
+      if (viewMode !== 'slam' && lidarScan.length > 0) {
+        simCtx.strokeStyle = 'rgba(6, 182, 212, 0.12)';
+        simCtx.lineWidth = 1;
+        simCtx.beginPath();
+        for (let i = 0; i < lidarScan.length; i += 3) {
+          const b = lidarScan[i];
+          simCtx.moveTo(robot.x, robot.y);
+          simCtx.lineTo(b.hitX, b.hitY);
+        }
+        simCtx.stroke();
+
+        simCtx.fillStyle = 'rgba(6, 182, 212, 0.8)';
+        for (let i = 0; i < lidarScan.length; i += 2) {
+          const b = lidarScan[i];
+          if (b.hit) simCtx.fillRect(b.hitX - 1, b.hitY - 1, 2, 2);
+        }
+      }
+
+      // Frontiers
+      if (navMode === 'FRONTIER_EXPLORE') {
+        simCtx.fillStyle = 'rgba(192, 132, 252, 0.8)';
+        for (let i = 0; i < frontierGoals.length; i++) {
+          const f = frontierGoals[i];
+          simCtx.fillRect(f.x - 2, f.y - 2, 4, 4);
+        }
+        if (activeFrontier) {
+          simCtx.strokeStyle = '#c084fc';
+          simCtx.lineWidth = 2;
+          simCtx.beginPath();
+          simCtx.arc(activeFrontier.x, activeFrontier.y, 8, 0, Math.PI * 2);
+          simCtx.stroke();
+        }
+      }
+
+      // Global Path (A*)
+      if (globalPath.length > 1) {
+        simCtx.strokeStyle = '#10b981';
+        simCtx.lineWidth = 2.5;
+        simCtx.setLineDash([4, 4]);
+        simCtx.beginPath();
+        simCtx.moveTo(robot.x, robot.y);
+        for (let i = 0; i < globalPath.length; i++) {
+          simCtx.lineTo(globalPath[i].x, globalPath[i].y);
+        }
+        simCtx.stroke();
+        simCtx.setLineDash([]);
+      }
+
+      // Local Trajectory (DWA)
+      if (dwaBestTrajectory.length > 1) {
+        simCtx.strokeStyle = '#38bdf8';
+        simCtx.lineWidth = 3;
+        simCtx.beginPath();
+        simCtx.moveTo(robot.x, robot.y);
+        for (let i = 0; i < dwaBestTrajectory.length; i++) {
+          simCtx.lineTo(dwaBestTrajectory[i].x, dwaBestTrajectory[i].y);
+        }
+        simCtx.stroke();
+      }
+
+      // Goal Target
+      if (navGoal) {
+        simCtx.fillStyle = '#f59e0b';
+        simCtx.beginPath();
+        simCtx.arc(navGoal.x, navGoal.y, 7, 0, Math.PI * 2);
+        simCtx.fill();
+        simCtx.strokeStyle = '#ffffff';
+        simCtx.lineWidth = 2;
+        simCtx.stroke();
+
+        const pulseR = 10 + (Date.now() % 1000) / 70;
+        simCtx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+        simCtx.beginPath();
+        simCtx.arc(navGoal.x, navGoal.y, pulseR, 0, Math.PI * 2);
+        simCtx.stroke();
+      }
+
+      // Robot Trail
+      if (robot.trail.length > 1) {
+        simCtx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+        simCtx.lineWidth = 1.5;
+        simCtx.beginPath();
+        simCtx.moveTo(robot.trail[0].x, robot.trail[0].y);
+        for (let i = 1; i < robot.trail.length; i++) {
+          simCtx.lineTo(robot.trail[i].x, robot.trail[i].y);
+        }
+        simCtx.stroke();
+      }
+
+      // Physical Robot Body
+      drawRobotChassis(simCtx, robot.x, robot.y, robot.theta);
+
+      // Line Dragging Obstacle
+      if (isDrawingObstacle && drawObstaclePoints.length > 1) {
+        simCtx.strokeStyle = '#f43f5e';
+        simCtx.lineWidth = 4;
+        simCtx.beginPath();
+        simCtx.moveTo(drawObstaclePoints[0].x, drawObstaclePoints[0].y);
+        for (let i = 1; i < drawObstaclePoints.length; i++) {
+          simCtx.lineTo(drawObstaclePoints[i].x, drawObstaclePoints[i].y);
+        }
+        simCtx.stroke();
+      }
+
+      renderRadarScope();
+      renderCameraView();
+      updateTelemetryDashboard();
+    }
+
+    function renderOccupancyGrid(ctx) {
+      for (let y = 0; y < GRID_ROWS; y++) {
+        for (let x = 0; x < GRID_COLS; x++) {
+          const idx = y * GRID_COLS + x;
+          const logVal = logOddsMap[idx];
+          if (logVal === 0) continue;
+
+          if (logVal > 0.5) {
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(x * GRID_RES, y * GRID_RES, GRID_RES, GRID_RES);
+          } else if (logVal < -0.3) {
+            ctx.fillStyle = 'rgba(241, 245, 249, 0.08)';
+            ctx.fillRect(x * GRID_RES, y * GRID_RES, GRID_RES, GRID_RES);
+          }
+        }
+      }
+    }
+
+    function drawRobotChassis(ctx, rx, ry, heading) {
+      ctx.save();
+      ctx.translate(rx, ry);
+      ctx.rotate(heading);
+
+      // Differential Wheels
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(-WHEEL_BASE/2 + 2, -ROBOT_RADIUS - 4, WHEEL_BASE - 4, 6);
+      ctx.fillRect(-WHEEL_BASE/2 + 2, ROBOT_RADIUS - 2, WHEEL_BASE - 4, 6);
+
+      // Chassis Body
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(0, 0, ROBOT_RADIUS, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Heading Arrow
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.moveTo(ROBOT_RADIUS + 4, 0);
+      ctx.lineTo(ROBOT_RADIUS - 6, -6);
+      ctx.lineTo(ROBOT_RADIUS - 6, 6);
+      ctx.closePath();
+      ctx.fill();
+
+      // Rotating LiDAR Puck
+      const lidarPuckAngle = (Date.now() / 150) % (Math.PI * 2);
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#06b6d4';
+      ctx.beginPath();
+      ctx.arc(Math.cos(lidarPuckAngle) * 4, Math.sin(lidarPuckAngle) * 4, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function renderRadarScope() {
+      const w = lidarCanvas.width || 240;
+      const h = lidarCanvas.height || 220;
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxR = Math.min(cx, cy) - 10;
+
+      lidarCtx.fillStyle = '#030712';
+      lidarCtx.fillRect(0, 0, w, h);
+
+      lidarCtx.fillStyle = '#06b6d4';
+      for (let i = 0; i < lidarScan.length; i++) {
+        const b = lidarScan[i];
+        if (!b.hit) continue;
+        const normDist = Math.min(1.0, b.dist / LIDAR_MAX_RANGE);
+        const r = normDist * maxR;
+        const relAngle = (i * 2 * Math.PI / LIDAR_BEAMS);
+        const px = cx + Math.cos(relAngle) * r;
+        const py = cy + Math.sin(relAngle) * r;
+        lidarCtx.fillRect(px - 1, py - 1, 2.5, 2.5);
+      }
+
+      const sweepAngle = (Date.now() / 300) % (Math.PI * 2);
+      lidarCtx.strokeStyle = 'rgba(6, 182, 212, 0.7)';
+      lidarCtx.lineWidth = 1.5;
+      lidarCtx.beginPath();
+      lidarCtx.moveTo(cx, cy);
+      lidarCtx.lineTo(cx + Math.cos(sweepAngle) * maxR, cy + Math.sin(sweepAngle) * maxR);
+      lidarCtx.stroke();
+    }
+
+    function renderCameraView() {
+      const w = cameraCanvas.width || 320;
+      const h = cameraCanvas.height || 128;
+
+      cameraCtx.fillStyle = '#090d16';
+      cameraCtx.fillRect(0, 0, w, h);
+
+      const grad = cameraCtx.createLinearGradient(0, h/2, 0, h);
+      grad.addColorStop(0, '#090d16');
+      grad.addColorStop(1, '#1e293b');
+      cameraCtx.fillStyle = grad;
+      cameraCtx.fillRect(0, h/2, w, h/2);
+
+      cameraCtx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+      cameraCtx.lineWidth = 1;
+      for (let i = -w/2; i <= w/2; i += 30) {
+        cameraCtx.beginPath();
+        cameraCtx.moveTo(w/2, h/2);
+        cameraCtx.lineTo(w/2 + i * 2, h);
+        cameraCtx.stroke();
+      }
+
+      const fov = 70 * Math.PI / 180;
+      let featureCount = 0;
+
+      for (let i = -20; i <= 20; i += 4) {
+        const beamIdx = ((Math.floor(i * (LIDAR_BEAMS / 360)) % LIDAR_BEAMS) + LIDAR_BEAMS) % LIDAR_BEAMS;
+        const b = lidarScan[beamIdx];
+        if (b && b.hit && b.dist < LIDAR_MAX_RANGE) {
+          const screenX = w/2 + (i / 35) * (w/2);
+          const objH = Math.max(10, (1 - b.dist / LIDAR_MAX_RANGE) * (h * 0.75));
+          const colDepth = Math.floor(255 * (1 - b.dist / LIDAR_MAX_RANGE));
+
+          cameraCtx.fillStyle = `rgb(14, ${colDepth}, ${Math.floor(colDepth * 0.8)})`;
+          cameraCtx.fillRect(screenX - 4, h/2 - objH/2, 8, objH);
+
+          cameraCtx.fillStyle = '#facc15';
+          cameraCtx.fillRect(screenX - 1, h/2 - objH/2 + (objH * 0.3), 3, 3);
+          cameraCtx.fillRect(screenX + 1, h/2 - objH/2 + (objH * 0.7), 3, 3);
+          featureCount += 2;
+        }
+      }
+
+      for (let i = 0; i < fiducialMarkers.length; i++) {
+        const tag = fiducialMarkers[i];
+        const dx = tag.x - robot.x;
+        const dy = tag.y - robot.y;
+        const dist = Math.hypot(dx, dy);
+        const angleToTag = normalizeAngle(Math.atan2(dy, dx) - robot.theta);
+
+        if (Math.abs(angleToTag) < fov / 2 && dist < 220) {
+          const screenX = w/2 + (angleToTag / (fov/2)) * (w/2);
+          const tagSize = Math.max(14, (1 - dist / 220) * 38);
+
+          cameraCtx.strokeStyle = '#34d399';
+          cameraCtx.lineWidth = 2;
+          cameraCtx.strokeRect(screenX - tagSize/2, h/2 - tagSize/2, tagSize, tagSize);
+          cameraCtx.fillStyle = 'rgba(52, 211, 153, 0.2)';
+          cameraCtx.fillRect(screenX - tagSize/2, h/2 - tagSize/2, tagSize, tagSize);
+
+          cameraCtx.fillStyle = '#34d399';
+          cameraCtx.font = '9px JetBrains Mono';
+          cameraCtx.fillText(`[TAG#${tag.id}] ${(dist/30).toFixed(1)}m`, screenX - tagSize/2, h/2 - tagSize/2 - 4);
+          featureCount += 4;
+        }
+      }
+
+      const featEl = document.getElementById('cameraFeatureCount');
+      if (featEl) featEl.textContent = featureCount;
+    }
+
+    let frameCounter = 0;
+    function updateTelemetryDashboard() {
+      frameCounter++;
+      if (frameCounter % 5 !== 0) return;
+
+      document.getElementById('telX').textContent = (robot.x / 30).toFixed(2) + ' m';
+      document.getElementById('telY').textContent = (robot.y / 30).toFixed(2) + ' m';
+      document.getElementById('telTheta').textContent = ((robot.theta * 180 / Math.PI + 360) % 360).toFixed(1) + '°';
+      document.getElementById('telV').textContent = (robot.v * 0.8).toFixed(2) + ' m/s';
+      document.getElementById('telOmega').textContent = robot.omega.toFixed(2) + ' rad/s';
+
+      const vLeft = (robot.v - (robot.omega * WHEEL_BASE / 60));
+      const vRight = (robot.v + (robot.omega * WHEEL_BASE / 60));
+      const rpmL = Math.round(vLeft * 140);
+      const rpmR = Math.round(vRight * 140);
+      document.getElementById('telRpmL').textContent = rpmL + ' RPM';
+      document.getElementById('telRpmR').textContent = rpmR + ' RPM';
+
+      let knownCount = 0;
+      for (let i = 0; i < logOddsMap.length; i++) {
+        if (Math.abs(logOddsMap[i]) > 0.25) knownCount++;
+      }
+      const covPct = ((knownCount / logOddsMap.length) * 100).toFixed(1);
+      document.getElementById('telCoverage').textContent = covPct + '%';
+
+      const conf = Math.max(92.0, Math.min(99.8, 99.5 - (Math.abs(robot.omega) * 1.5))).toFixed(1);
+      document.getElementById('slamConfidenceText').textContent = conf + '%';
+      document.getElementById('slamConfidenceBar').style.width = conf + '%';
+    }
+
+    function updateLoopClosureUI() {
+      if (loopClosureCounterEl) loopClosureCounterEl.textContent = slamRobot.loopClosures;
+    }
+
+    function triggerLoopClosureTest() {
+      slamRobot.loopClosures++;
+      updateLoopClosureUI();
+      playGoalReachedSound();
+      if (goalToast) {
+        goalToast.classList.remove('hidden');
+        goalToastText.textContent = `🔄 Loop Closure #${slamRobot.loopClosures} Accepted! Pose Graph Optimized`;
+        setTimeout(() => goalToast.classList.add('hidden'), 3500);
+      }
+    }
+
+    function spawnDynamicObstacle() {
+      const ox = 100 + Math.random() * (WORLD_WIDTH - 200);
+      const oy = 100 + Math.random() * (WORLD_HEIGHT - 200);
+      dynamicObstacles.push({
+        x: ox,
+        y: oy,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: (Math.random() - 0.5) * 1.2,
+        radius: 13,
+        color: '#f59e0b',
+        name: `Obstacle ${dynamicObstacles.length + 1}`
+      });
+      playBeep(520, 0.1);
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.getElementById('btnViewFused').className = mode === 'fused' ? 'px-2.5 py-1 rounded-md bg-cyan-600 text-white shadow' : 'px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200';
+      document.getElementById('btnViewSlam').className = mode === 'slam' ? 'px-2.5 py-1 rounded-md bg-cyan-600 text-white shadow' : 'px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200';
+      document.getElementById('btnViewWorld').className = mode === 'world' ? 'px-2.5 py-1 rounded-md bg-cyan-600 text-white shadow' : 'px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200';
+    }
+
+    function setSimSpeed(sp, btnElement) {
+      simSpeed = sp;
+      document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.className = 'speed-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700';
+      });
+      if (btnElement) {
+        btnElement.className = 'speed-btn px-2 py-0.5 rounded bg-cyan-600 text-white font-bold';
+      }
+    }
+
+    function toggleSimPause() {
+      isPaused = !isPaused;
+      const btn = document.getElementById('btnPause');
+      if (isPaused) {
+        btn.textContent = 'Resume';
+        btn.className = 'px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold';
+      } else {
+        btn.textContent = 'Pause';
+        btn.className = 'px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold';
+      }
+    }
+
+    function toggleDynamicObstacles(enabled) { enableDynamicObstacles = enabled; }
+    function toggleSensorNoise(enabled) { enableSensorNoise = enabled; }
+    function toggleCostmapInflation(enabled) { enableCostmapInflation = enabled; }
+    function updateMaxSpeed(val) {
+      maxSpeed = parseFloat(val);
+      document.getElementById('maxSpeedVal').textContent = maxSpeed.toFixed(1) + ' m/s';
+    }
+
+    // --- ANIMATION LOOP ---
+    let lastTime = performance.now();
+    function animate(currentTime) {
+      const dt = Math.min(0.1, (currentTime - lastTime) / 1000);
+      lastTime = currentTime;
+
+      if (!isPaused) {
+        updatePhysics(dt);
+      }
+
+      render();
+      requestAnimationFrame(animate);
+    }
+
+    // Immediate and event-based initialization
+    function init() {
+      simCanvas.width = WORLD_WIDTH;
+      simCanvas.height = WORLD_HEIGHT;
+      loadPresetMap('arena');
+      requestAnimationFrame(animate);
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      init();
+    } else {
+      window.addEventListener('DOMContentLoaded', init);
+      window.addEventListener('load', init);
+    }
+  </script>
+</body>
+</html>

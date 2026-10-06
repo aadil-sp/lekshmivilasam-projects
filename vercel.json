@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "lekshmivilasam-projects",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

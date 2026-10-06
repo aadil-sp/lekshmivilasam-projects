@@ -1,0 +1,65 @@
+#devType: ML
+#isUsingRail: False
+dType.SetQueuedCmdClear(api)
+dType.SetQueuedCmdStopExec(api)
+dType.SetQueuedCmdStartExec(api)
+dType.SetArmSpeedRatio(api,1,30, 1)
+dType.SetPTPJumpParams(api,20.0,100.0, 1)
+dType.SetLostStepParams(api,5.0, 1)
+index = dType.SetHOMECmd(api, 0, 1)
+isUsingLinearRail = False
+while True:
+    if isUsingLinearRail:
+        if dType.GetQueuedCmdCurrentIndex(api)[0] >= index[0] and dType.GetQueuedCmdCurrentIndex(api)[1] >= index[1]:
+            break
+        dType.dSleep(100)
+    else:
+        if dType.GetQueuedCmdCurrentIndex(api)[0] >= index[0]:
+            break
+        dType.dSleep(100)
+moveAllDataLen = 20
+dType.SetProgbar(api, int(0))
+for i in range(0, 1):
+    dType.SetPTPCmdEx(api,1 ,240.1369, 0.0, 151.5089, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, -100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, -100, -40.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, -100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, -40.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,324.8, -100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,324.8, -100, -40.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,324.8, -100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, -25.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,304.8, -100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,304.8, -100, -40.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,304.8, -100, -10.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, 0.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,1,1, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, -11.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,344.8, 100, 0.0, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetPTPCmdEx(api,1 ,240.1369, 0.0, 151.5089, 0.0, 1)
+    dType.SetEndEffectorSuctionCupEx(api,0,0, 1)
+    dType.SetProgbar(api, int((i+1)*100*(20)/moveAllDataLen))
+dType.dSleep(1000)
+dType.RestartMagicBox(api)

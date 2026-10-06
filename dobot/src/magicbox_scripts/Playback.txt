@@ -1,0 +1,41 @@
+# Dobot Magician Lite Playback Trajectory File
+# Format: [X, Y, Z, R, PTPMode, EffectorType, EffectorState, DelayMs]
+# PTPMode: 0=JUMP, 1=MOVJ, 2=MOVL
+# EffectorType: 0=None, 1=Gripper, 2=Suction
+# EffectorState: 1=Grip/Suck, 0=Release/Off
+
+# 1. Standby Ready Position
+[240.0, 0.0, 60.0, 0.0, 1, 0, 0, 300]
+
+# 2. Hover above Pickup Point (Left: Y = -100)
+[300.0, -100.0, 30.0, 0.0, 1, 0, 0, 200]
+
+# 3. Lower & Pick (Suction Cup ON)
+[300.0, -100.0, -35.0, 0.0, 2, 2, 1, 800]
+
+# 4. Lift to Safe Height
+[300.0, -100.0, 40.0, 0.0, 2, 2, 1, 300]
+
+# 5. Transit to Center Stage
+[320.0, 0.0, 40.0, 0.0, 1, 2, 1, 300]
+
+# 6. Lower to Center Platform & Release
+[320.0, 0.0, -35.0, 0.0, 2, 2, 0, 600]
+
+# 7. Lift Clear
+[320.0, 0.0, 40.0, 0.0, 2, 0, 0, 300]
+
+# 8. Re-pick from Center Stage
+[320.0, 0.0, -35.0, 0.0, 2, 2, 1, 800]
+
+# 9. Lift
+[320.0, 0.0, 40.0, 0.0, 2, 2, 1, 300]
+
+# 10. Transit to Dropoff Point (Right: Y = +100)
+[300.0, 100.0, 40.0, 0.0, 1, 2, 1, 300]
+
+# 11. Place & Release
+[300.0, 100.0, -35.0, 0.0, 2, 2, 0, 600]
+
+# 12. Return to Safe Home Standby
+[240.0, 0.0, 60.0, 0.0, 1, 0, 0, 500]

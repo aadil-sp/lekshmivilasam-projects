@@ -1,0 +1,76 @@
+========================================================================================
+KERALA STATE SASTHROLSAVAM (SASTHRAMELA) - IoT PROJECT REPORT
+PROJECT: AIoT Landslide & Flash-Flood Early Warning System with Embedded TinyML
+MICROCONTROLLER: ESP32 Dual-Core Tensilica Xtensa (240MHz)
+========================================================================================
+
+1. EXECUTIVE SUMMARY
+--------------------
+The AIoT Landslide & Flash-Flood Early Warning System is an autonomous environmental
+monitoring and disaster prediction platform designed for the flood/landslide prone
+high ranges of Kerala (Wayanad, Idukki, Nilambur).
+Key innovations:
+- Automated Siphoning Rain Gauge using Ultrasonic Acoustic Tracking + 12V Solenoid Flush
+- Real-time Stream & River Level Velocity Tracking
+- Volumetric Soil Moisture Saturation Sensor
+- Microclimate Atmospheric Monitoring via DHT22
+- Embedded TinyML Sensor Fusion Classifier (Multivariate Logistic Inference)
+- Local High-Decibel Acoustic Siren + Blynk IoT 2.0 Cloud Dashboard
+
+2. SCIENTIFIC WORKING PRINCIPLES
+--------------------------------
+A. Soil Mechanics & Pore-Water Pressure:
+   Terzaghi's effective stress: sigma' = sigma - u
+   Shear strength tau_f decreases as moisture saturation approaches 100%.
+
+B. Ultrasonic Solenoid Rain Gauge:
+   Effective Rain (mm) = Chamber Height * (Chamber Area / Funnel Area)
+   Instant Rain Rate (mm/hr) = (Delta H / Delta T) * Area Ratio * 3600
+   When water reaches 135mm, 12V Solenoid opens for 3 seconds to flush, logs timestamp,
+   and increments cumulative rainfall count.
+
+C. TinyML Hazard Classification:
+   z = w0 + w1*(Moisture%) + w2*(RainRate) + w3*(CumRain) + w4*(StreamRise)
+   Probability P(Hazard) = 1 / (1 + exp(-z)) * 100%
+
+3. HARDWARE PIN ASSIGNMENTS (ESP32)
+-----------------------------------
+- Soil Moisture Analog:   GPIO 34 (ADC1_CH6)
+- Stream Ultrasonic TRIG: GPIO 5
+- Stream Ultrasonic ECHO: GPIO 18
+- Rain Gauge Ultrasonic TRIG: GPIO 19
+- Rain Gauge Ultrasonic ECHO: GPIO 21
+- 12V Solenoid Relay:     GPIO 22 (Active HIGH)
+- DHT22 Temp/Humidity:    GPIO 4 (4.7k Pull-up)
+- Active Alert Siren:     GPIO 23
+- Safe LED (Green):       GPIO 2
+- Alert LED (Red):        GPIO 15
+
+4. BLYNK IOT 2.0 VIRTUAL PINS
+-----------------------------
+V0: Hazard Index (%)
+V1: Soil Moisture (%)
+V2: Stream Water Level (cm)
+V3: Rain Intensity (mm/hr)
+V4: Cumulative Rainfall (mm)
+V5: Temperature (C)
+V6: Humidity (%)
+V7: Solenoid Flush Count
+V8: Risk Level Text Banner
+
+5. BILL OF MATERIALS (BOM)
+--------------------------
+1. ESP32 Dev Module (Wi-Fi/BLE):    Rs. 350
+2. Dual HC-SR04 Ultrasonic Sensors: Rs. 140
+3. 12V DC Solenoid Flush Valve:     Rs. 280
+4. 1-Channel Isolated Relay Module: Rs.  55
+5. Soil Moisture Sensor Probe:      Rs.  75
+6. DHT22 Temperature & Humidity:    Rs. 160
+7. Piezo Siren & Indicator LEDs:    Rs.  40
+8. Acrylic Chamber & Funnel Kit:    Rs. 150
+9. 12V Adapter & Buck Converter:    Rs. 190
+TOTAL ESTIMATED COST:               Rs. 1,440 INR
+
+========================================================================================
+Kerala State Sasthrolsavam &bull; Lekshmivilasam IoT Division
+========================================================================================
