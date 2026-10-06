@@ -1,10 +1,15 @@
 {
-  "version": 2,
-  "name": "lekshmivilasam-projects",
-  "routes": [
+  "framework": null,
+  "cleanUrls": true,
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/public/(.*)",
+      "headers": [
+        {
+          "key": "Content-Disposition",
+          "value": "inline"
+        }
+      ]
     }
   ]
 }
