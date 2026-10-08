@@ -3,101 +3,391 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hand Follower Control</title>
+<title>RoboNav Hand Follower &amp; WASD Teleop</title>
 <style>
-  body { background: #0f172a; color: #f8fafc; font-family: sans-serif; padding: 20px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .card { background: #1e293b; padding: 20px; border-radius: 8px; }
-  input[type=range] { width: 100%; margin: 10px 0; }
-  button { padding: 10px 20px; background: #3b82f6; border: none; color: white; border-radius: 4px; cursor: pointer; }
-  button.danger { background: #ef4444; }
-  .video-container img { width: 100%; border-radius: 4px; }
+  :root {
+    --bg-primary: #090d16;
+    --bg-card: #0f172a;
+    --border: #1e293b;
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+    --cyan: #38bdf8;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --rose: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .wrapper {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+  }
+  h1 { font-size: 19px; font-weight: 800; color: #fff; }
+  .badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid #059669;
+  }
+
+  /* Grid Layout */
+  .grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 850px) {
+    .grid-2x2 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+
+  /* Video Feeds */
+  .feed-box {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-height: 290px;
+    background: #020408;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .feed-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* WASD / D-Pad */
+  .dpad-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: #060911;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+    gap: 6px;
+  }
+  .d-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #f8fafc;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: 0.1s;
+  }
+  .d-btn:active, .d-btn.active {
+    background: var(--amber);
+    color: #090d16;
+    transform: scale(0.95);
+  }
+  .d-stop {
+    background: #7f1d1d;
+    border-color: #ef4444;
+    color: #fecaca;
+    font-size: 10px;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .btn-stop { background: #dc2626; color: #fff; }
+  .btn-stop:hover { background: #b91c1c; }
+  .btn-start { background: #059669; color: #fff; }
+  .btn-start:hover { background: #047857; }
+
+  /* Sliders */
+  .slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+  }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-sub);
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--cyan);
+  }
 </style>
 </head>
 <body>
-  <h1>Hand Position Follower</h1>
-  
-  <div class="grid">
-    <div class="card">
-      <h2>RGB Camera (Tracking)</h2>
-      <div class="video-container">
-        <img src="http://10.215.119.164:5001/video_feed">
-      </div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <h1>Hand Follower &amp; WASD Teleop Command</h1>
+      <div style="font-size: 12px; color: var(--text-sub);">Raspberry Pi 5 Robot Vision Stack &bull; RealSense &amp; Index Fingertip Tracking</div>
     </div>
-    
+    <div class="badge" id="netBadge">ONLINE &bull; 10.68.210.164</div>
+  </header>
+
+  <!-- FEEDS ROW -->
+  <div class="grid-2x2">
+    <!-- RGB CAM -->
     <div class="card">
-      <h2>Depth Camera (Distance)</h2>
-      <div class="video-container">
-        <img src="http://10.215.119.164:5001/depth_feed">
+      <div class="card-header">
+        <div class="card-title">📷 RGB Camera (Index Fingertip Tracking)</div>
+        <span style="font-size:11px; color:var(--text-sub);" id="rgbFps">30 FPS</span>
       </div>
-    </div>
-    
-    <div class="card">
-      <h2>Control Mode</h2>
-      <button onclick="setMode('MANUAL')" class="danger">STOP (Manual)</button>
-      <button onclick="setMode('FOLLOW')">START HAND FOLLOW</button>
-      <p>Current Mode: <strong id="modeTxt">MANUAL</strong></p>
-    </div>
-    
-    <div class="card">
-      <h2>PID Tuning</h2>
-      <div>
-        <h3>Follow (Linear) PID</h3>
-        <label>P: <input type="range" id="linP" min="0" max="0.01" step="0.0001" value="0.002" onchange="sendPID()"></label>
-        <label>D: <input type="range" id="linD" min="0" max="0.01" step="0.0001" value="0.001" onchange="sendPID()"></label>
-      </div>
-      <div>
-        <h3>Rotate (Angular) PID</h3>
-        <label>P: <input type="range" id="rotP" min="0" max="0.01" step="0.0001" value="0.002" onchange="sendPID()"></label>
-        <label>D: <input type="range" id="rotD" min="0" max="0.01" step="0.0001" value="0.001" onchange="sendPID()"></label>
+      <div class="feed-box">
+        <img id="rgbFeed" src="/video_feed" alt="RGB Camera Stream" />
       </div>
     </div>
 
+    <!-- DEPTH CAM -->
     <div class="card">
-      <h2>Motor Deadzones (Min PWM)</h2>
-      <div>
-        <label>Left Motor: <span id="lVal">80</span> <input type="range" id="minL" min="0" max="150" step="1" value="80" oninput="document.getElementById('lVal').innerText=this.value; sendPID()"></label>
+      <div class="card-header">
+        <div class="card-title">🌐 Depth Camera (Metric Distance)</div>
+        <span style="font-size:11px; color:var(--text-sub);" id="depthFps">30 FPS</span>
       </div>
-      <div>
-        <label>Right Motor: <span id="rVal">80</span> <input type="range" id="minR" min="0" max="150" step="1" value="80" oninput="document.getElementById('rVal').innerText=this.value; sendPID()"></label>
+      <div class="feed-box">
+        <img id="depthFeed" src="/depth_feed" alt="Depth Camera Stream" />
       </div>
     </div>
   </div>
 
-<script>
-  function setMode(mode) {
-    fetch('/api/mode', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({mode})
-    });
-    document.getElementById('modeTxt').innerText = mode;
-  }
-  
-  
-  function sendPID() {
-    const data = {
-      lin_p: parseFloat(document.getElementById('linP').value),
-      lin_d: parseFloat(document.getElementById('linD').value),
-      rot_p: parseFloat(document.getElementById('rotP').value),
-      rot_d: parseFloat(document.getElementById('rotD').value),
-      min_l: parseInt(document.getElementById('minL').value),
-      min_r: parseInt(document.getElementById('minR').value)
-    };
+  <!-- CONTROLS & TUNING ROW -->
+  <div class="grid-2x2">
+    
+    <!-- LEFT: WASD MANUAL OVERRIDE & MODE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🎮 Navigation Mode &amp; WASD Override</div>
+        <span class="badge" id="modeBadge" style="background:#064e3b; color:#34d399;">HAND FOLLOW (ACTIVE)</span>
+      </div>
 
-    fetch('/api/pid', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    });
+      <div class="btn-row">
+        <button class="btn btn-start" onclick="setMode('start_follow')">⚡ RESUME HAND FOLLOW</button>
+        <button class="btn btn-stop" onclick="setMode('stop_follow')">🛑 EMERGENCY STOP</button>
+      </div>
+
+      <!-- DPAD / WASD -->
+      <div class="dpad-container">
+        <div style="font-size:11px; font-weight:700; color:var(--amber);">WASD Keys or Buttons (Auto-Overrides Hand Follow):</div>
+        <div class="dpad">
+          <div></div>
+          <button class="d-btn" onmousedown="drive('FWD')" onmouseup="drive('STOP')" id="k-w">▲</button>
+          <div></div>
+          <button class="d-btn" onmousedown="drive('LEFT')" onmouseup="drive('STOP')" id="k-a">◀</button>
+          <button class="d-btn d-stop" onclick="drive('STOP')">STOP</button>
+          <button class="d-btn" onmousedown="drive('RIGHT')" onmouseup="drive('STOP')" id="k-d">▶</button>
+          <div></div>
+          <button class="d-btn" onmousedown="drive('REV')" onmouseup="drive('STOP')" id="k-s">▼</button>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- Tracking status -->
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-sub); border-top:1px solid var(--border); padding-top:8px;">
+        <span>Target: <strong id="trkStatus" style="color:var(--emerald);">DETECTING...</strong></span>
+        <span>Distance: <strong id="trkDist" style="color:#fff;">-- mm</strong></span>
+        <span>Temp: <strong id="cpuTemp" style="color:#fff;">--°C</strong></span>
+      </div>
+    </div>
+
+    <!-- RIGHT: PID & MOTOR TUNING -->
+    <div class="card">
+      <div class="card-title">⚙️ Follow PID &amp; Motor Deadzones</div>
+      
+      <div style="font-size: 11px; font-weight: 700; color:#fff;">Follow (Linear Distance) PID</div>
+      <div class="slider-group">
+        <div class="slider-label"><span>P Gain:</span><span id="pLinVal">0.0018</span></div>
+        <input type="range" min="0.0005" max="0.006" step="0.0002" value="0.0018" id="pLin" oninput="updatePID()">
+        <div class="slider-label"><span>D Gain:</span><span id="dLinVal">0.0008</span></div>
+        <input type="range" min="0.0001" max="0.003" step="0.0001" value="0.0008" id="dLin" oninput="updatePID()">
+      </div>
+
+      <div style="font-size: 11px; font-weight: 700; color:#fff; margin-top: 4px;">Rotate (Angular Steering) PID</div>
+      <div class="slider-group">
+        <div class="slider-label"><span>P Gain:</span><span id="pRotVal">0.0022</span></div>
+        <input type="range" min="0.0005" max="0.006" step="0.0002" value="0.0022" id="pRot" oninput="updatePID()">
+        <div class="slider-label"><span>D Gain:</span><span id="dRotVal">0.0010</span></div>
+        <input type="range" min="0.0001" max="0.003" step="0.0001" value="0.0010" id="dRot" oninput="updatePID()">
+      </div>
+
+      <div style="font-size: 11px; font-weight: 700; color:#fff; margin-top: 4px;">Motor Deadzone (Min PWM)</div>
+      <div class="slider-group">
+        <div class="slider-label"><span>Min PWM:</span><span id="pwmVal">80</span></div>
+        <input type="range" min="50" max="150" step="5" value="80" id="pwmSlider" oninput="updatePID()">
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function drive(dir) {
+  fetch('/api/drive', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({dir: dir, speed: 0.6})
+  });
+}
+
+function setMode(cmd) {
+  fetch('/api/control', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({command: cmd})
+  });
+}
+
+function updatePID() {
+  const pL = document.getElementById('pLin').value;
+  const dL = document.getElementById('dLin').value;
+  const pR = document.getElementById('pRot').value;
+  const dR = document.getElementById('dRot').value;
+  const pwm = document.getElementById('pwmSlider').value;
+
+  document.getElementById('pLinVal').innerText = pL;
+  document.getElementById('dLinVal').innerText = dL;
+  document.getElementById('pRotVal').innerText = pR;
+  document.getElementById('dRotVal').innerText = dR;
+  document.getElementById('pwmVal').innerText = pwm;
+
+  fetch('/api/pid', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      kp_lin: pL, kd_lin: dL,
+      kp_rot: pR, kd_rot: dR,
+      min_pwm: pwm
+    })
+  });
+}
+
+// Keyboard WASD Controls
+const keyMap = {'KeyW': 'k-w', 'KeyA': 'k-a', 'KeyS': 'k-s', 'KeyD': 'k-d'};
+const dirMap = {'KeyW': 'FWD', 'KeyA': 'LEFT', 'KeyS': 'REV', 'KeyD': 'RIGHT'};
+
+window.addEventListener('keydown', (e) => {
+  if (dirMap[e.code]) {
+    const el = document.getElementById(keyMap[e.code]);
+    if (el) el.classList.add('active');
+    drive(dirMap[e.code]);
   }
-  
-  // Quick hack to show current mode
-  setInterval(() => {
-    fetch('/api/telemetry').then(r => r.json()).then(d => {
-      document.getElementById('modeTxt').innerText = d.mode;
+});
+
+window.addEventListener('keyup', (e) => {
+  if (dirMap[e.code]) {
+    const el = document.getElementById(keyMap[e.code]);
+    if (el) el.classList.remove('active');
+    drive('STOP');
+  }
+});
+
+// Telemetry Poller
+setInterval(() => {
+  fetch('/api/telemetry')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('cpuTemp').innerText = `${d.cpu_temp || '--'}°C`;
+      if (d.ip) document.getElementById('netBadge').innerText = `ONLINE • ${d.ip}`;
+      if (d.rgb_fps) document.getElementById('rgbFps').innerText = `${d.rgb_fps} FPS`;
+      if (d.depth_fps) document.getElementById('depthFps').innerText = `${d.depth_fps} FPS`;
+      
+      const badge = document.getElementById('modeBadge');
+      badge.innerText = d.mode;
+      if (d.is_manual_override) {
+        badge.style.background = '#78350f';
+        badge.style.color = '#fde68a';
+      } else if (d.pid_active) {
+        badge.style.background = '#064e3b';
+        badge.style.color = '#34d399';
+      } else {
+        badge.style.background = '#7f1d1d';
+        badge.style.color = '#fecaca';
+      }
+
+      if (d.tracking && d.tracking.found) {
+        document.getElementById('trkStatus').innerText = 'INDEX TIP TRACKED';
+        document.getElementById('trkStatus').style.color = '#34d399';
+        document.getElementById('trkDist').innerText = `${d.tracking.dist_mm} mm`;
+      } else {
+        document.getElementById('trkStatus').innerText = 'SEARCHING...';
+        document.getElementById('trkStatus').style.color = '#94a3b8';
+        document.getElementById('trkDist').innerText = '-- mm';
+      }
     });
-  }, 1000);
+}, 1000);
 </script>
+
 </body>
 </html>

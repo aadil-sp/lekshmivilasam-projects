@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lekshmivilasam Research & Innovation Labs | State Sasthrolsavam 2026</title>
+  <title>LVHS Project Support | Fast Exhibition Assistant for IoT, Robotics & Electronics</title>
+  <meta name="description" content="Official student project support portal for Lekshmivilasam High School - Complete guides, circuit pinouts, ready-to-upload code, troubleshooting, and viva defense for IoT, Robotics, and Electronics exhibition projects.">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,20 +19,23 @@
   <!-- Navbar -->
   <nav class="navbar">
     <div class="nav-container">
-      <div class="nav-brand">
+      <div class="nav-brand" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="cursor: pointer;">
         <span class="brand-logo">⚡</span>
         <div class="brand-text">
-          <span class="brand-name">Lekshmivilasam Labs</span>
-          <span class="brand-tag">Sasthrolsavam 2026</span>
+          <span class="brand-name">LVHS Project Support</span>
+          <span class="brand-tag">lvhsprojectsupport &bull; Exhibition Fast Assistant</span>
         </div>
       </div>
       <div class="nav-links">
         <a href="#hero" class="nav-link">Home</a>
-        <a href="#projects-hub" class="nav-link">Projects</a>
-        <a href="#downloads" class="nav-link">Downloads</a>
-        <a href="#viva" class="nav-link">Viva Defense</a>
+        <a href="#projects-hub" class="nav-link">Project Tracks</a>
+        <a href="#pinout-finder" class="nav-link">Pin Finder</a>
+        <a href="#troubleshooting-guide" class="nav-link">Troubleshooting</a>
+        <a href="#downloads" class="nav-link">Downloads & Reports</a>
       </div>
-      <a href="#projects-hub" class="btn btn-sm btn-primary">Explore Projects</a>
+      <div class="nav-actions">
+        <a href="#projects-hub" class="btn btn-sm btn-primary">Start Building</a>
+      </div>
     </div>
   </nav>
 
@@ -40,77 +44,102 @@
     <div class="hero-container">
       <div class="badge-pill">
         <span class="badge-dot"></span>
-        <span>Kerala State School Sasthrolsavam (Sasthramela) 2026 State Entry</span>
+        <span>Lekshmivilasam High School &bull; Science Fair & Sasthrolsavam 2026</span>
       </div>
       <h1 class="hero-title">
-        Advanced Applied Engineering & <span class="gradient-text">AI Project Portfolio</span>
+        Exhibition Project Support & <span class="gradient-text">Fast Student Assistant</span>
       </h1>
       <p class="hero-desc">
-        A unified research suite featuring autonomous LiDAR SLAM robotics, edge AIoT disaster & landslide early warning systems, and smart medical-grade wearable bio-electronics.
+        Your all-in-one rapid engineering workbench. Get ready-to-flash microcontroller code, step-by-step circuit wiring tables, live hardware simulators, bug-fix guides, and judges' viva defense cards for school science exhibitions.
       </p>
+
+      <!-- Fast Action Domain Cards -->
       <div class="hero-actions">
-        <a href="#projects-hub" class="btn btn-lg btn-primary" id="explore-btn">
-          <span>Explore Projects</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <a href="public/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf" download class="btn btn-lg btn-secondary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          <span>Download Master PDF Report</span>
-        </a>
+        <button class="btn btn-lg btn-primary quick-jump" onclick="selectDomain('iot')">
+          <span>🌧️ IoT & Climate Track</span>
+        </button>
+        <button class="btn btn-lg btn-secondary quick-jump" onclick="selectDomain('robotics')">
+          <span>🤖 Robotics & SLAM Track</span>
+        </button>
+        <button class="btn btn-lg btn-secondary quick-jump" onclick="selectDomain('electronics')">
+          <span>⚡ Applied Bio-Electronics</span>
+        </button>
       </div>
 
       <!-- Quick Metrics -->
       <div class="stats-grid">
         <div class="stat-card">
           <span class="stat-num">3</span>
-          <span class="stat-label">Full Engineering Projects</span>
+          <span class="stat-label">Full Exhibition Tracks</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">1-Click</span>
+          <span class="stat-label">Ready Code & INO Downloads</span>
         </div>
         <div class="stat-card">
           <span class="stat-num">100%</span>
-          <span class="stat-label">Offline Edge Autonomy</span>
+          <span class="stat-label">Verified Circuit Pinouts</span>
         </div>
         <div class="stat-card">
-          <span class="stat-num">92%+</span>
-          <span class="stat-label">Cost Savings vs Commercial</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num">Live</span>
-          <span class="stat-label">Hardware & Hotspot Verified</span>
+          <span class="stat-num">Viva Deck</span>
+          <span class="stat-label">Curated Judges' Q&A</span>
         </div>
       </div>
     </div>
   </header>
 
+  <!-- Universal Instant Pin Finder Search Bar -->
+  <section class="pinout-search-section" id="pinout-finder">
+    <div class="section-container">
+      <div class="search-box-card">
+        <div class="search-header">
+          <span class="search-icon">🔍</span>
+          <div>
+            <h3>Instant Pinout & Connection Helper</h3>
+            <p>Search any sensor, motor, or module to immediately see its MCU pin connection, voltage rating, and wire color code.</p>
+          </div>
+        </div>
+        <div class="search-input-wrapper">
+          <input type="text" id="pinout-search-input" placeholder="Type a component name (e.g., 'Soil', 'Ultrasonic', 'Relay', 'L298N', 'OLED', 'MPU6050', 'MAX30102', 'Buzzer')..." oninput="searchPinout(this.value)">
+          <button class="search-clear-btn" onclick="clearPinoutSearch()">Clear</button>
+        </div>
+        <div id="pinout-search-results" class="pinout-results-box" style="display: none;">
+          <!-- Dynamically filled by JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Projects Hub Section -->
   <main class="projects-section" id="projects-hub">
     <div class="section-container">
       <div class="section-header">
-        <h2 class="section-title">Select a Project Domain</h2>
-        <p class="section-subtitle">Click below to inspect in-depth code, circuit schematics, mathematical models, operational flows, and interactive simulators.</p>
+        <h2 class="section-title">Select an Exhibition Project Track</h2>
+        <p class="section-subtitle">Click on any track below to open its dedicated studio: complete circuit wiring, ready-to-upload Arduino/ESP32 code, step-by-step connection guide, mathematical models, simulator, and viva voce defense.</p>
       </div>
 
-      <!-- 3 Main Project Selector Buttons -->
+      <!-- 3 Main Project Selector Menus -->
       <div class="project-selector">
-        <button class="project-btn active" data-project="iot">
+        <button class="project-btn active" data-project="iot" id="btn-iot" onclick="selectDomain('iot')">
           <div class="project-btn-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🌧️</div>
           <div class="project-btn-info">
-            <span class="project-btn-tag">IoT & Disaster Mitigation</span>
-            <h3 class="project-btn-title">AIoT Disaster & Rain Station</h3>
+            <span class="project-btn-tag">Track 1 &bull; IoT & Disaster Mitigation</span>
+            <h3 class="project-btn-title">AIoT Landslide & Rain Station</h3>
           </div>
         </button>
 
-        <button class="project-btn" data-project="robotics">
+        <button class="project-btn" data-project="robotics" id="btn-robotics" onclick="selectDomain('robotics')">
           <div class="project-btn-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">🤖</div>
           <div class="project-btn-info">
-            <span class="project-btn-tag">Robotics & AI</span>
+            <span class="project-btn-tag">Track 2 &bull; Robotics & Autonomous AI</span>
             <h3 class="project-btn-title">RoboNav-SLAM Mobile Robot</h3>
           </div>
         </button>
 
-        <button class="project-btn" data-project="electronics">
+        <button class="project-btn" data-project="electronics" id="btn-electronics" onclick="selectDomain('electronics')">
           <div class="project-btn-icon" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">🩺</div>
           <div class="project-btn-info">
-            <span class="project-btn-tag">Applied Bio-Electronics</span>
+            <span class="project-btn-tag">Track 3 &bull; Applied Bio-Electronics</span>
             <h3 class="project-btn-title">Smart Health & Fall Bio-Band</h3>
           </div>
         </button>
@@ -120,13 +149,15 @@
       <div class="project-detail-box" id="project-detail">
         <!-- Sub-Navigation Tabs for Selected Project -->
         <div class="tabs-nav">
-          <button class="tab-link active" data-tab="overview">📌 Overview</button>
-          <button class="tab-link" data-tab="circuit">🔌 Schematic & Circuits</button>
-          <button class="tab-link" data-tab="code">💻 Full Code</button>
-          <button class="tab-link" data-tab="working">⚙️ Working & Math</button>
-          <button class="tab-link" data-tab="applications">🚀 Applications</button>
-          <button class="tab-link" data-tab="simulator">🎮 Live Simulator</button>
-          <button class="tab-link" data-tab="viva">🎤 Judges' Viva Defense</button>
+          <button class="tab-link active" data-tab="overview">📌 Quick Overview & Pitch</button>
+          <button class="tab-link" data-tab="circuit">🔌 Circuit & Pin Connections</button>
+          <button class="tab-link" data-tab="steps">🛠️ Step-by-Step Connection Helper</button>
+          <button class="tab-link" data-tab="code">💻 Full Ready Code (.ino)</button>
+          <button class="tab-link" data-tab="working">⚙️ Working & Math Formulation</button>
+          <button class="tab-link" data-tab="applications">🚀 Exhibition Applications</button>
+          <button class="tab-link" data-tab="simulator">🎮 Live Interactive Simulator</button>
+          <button class="tab-link" data-tab="troubleshooting">🚨 Fast Troubleshooting</button>
+          <button class="tab-link" data-tab="viva">🎤 Judges' Viva Voce Defense</button>
         </div>
 
         <!-- Dynamic Content Injected Here by JavaScript -->
@@ -137,12 +168,64 @@
     </div>
   </main>
 
+  <!-- Universal Exhibition Pre-Presentation Checklist -->
+  <section class="checklist-section" id="troubleshooting-guide">
+    <div class="section-container">
+      <div class="checklist-card">
+        <div class="section-header text-left">
+          <span class="doc-badge green">Student Safety & Readiness Check</span>
+          <h2 class="section-title" style="margin-top: 10px;">Exhibition Stall 5-Minute Pre-Flight Checklist</h2>
+          <p class="section-subtitle">Before the judges visit your stall, verify these critical hardware and software checkpoints:</p>
+        </div>
+
+        <div class="checklist-grid">
+          <label class="checklist-item">
+            <input type="checkbox" checked>
+            <div class="check-text">
+              <strong>Common Ground (GND) Connected:</strong> Ensure the MCU GND, Battery GND, and Motor Driver/Relay GND are all tied together.
+            </div>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" checked>
+            <div class="check-text">
+              <strong>Baud Rate Synchronized:</strong> Arduino Serial Monitor set to exactly <code>115200 baud</code> in the bottom-right corner.
+            </div>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" checked>
+            <div class="check-text">
+              <strong>Isolated Motor / Pump Power Rail:</strong> Never power 12V DC motors or 12V water pumps directly from the 5V / 3.3V pin of the microcontroller.
+            </div>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" checked>
+            <div class="check-text">
+              <strong>Wi-Fi Hotspot / Bluetooth Ready:</strong> Verify your ESP32 Hotspot <code>ESP32-Smart-Monitor</code> (192.168.4.1) or BT link is active on your phone.
+            </div>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox">
+            <div class="check-text">
+              <strong>Backup 9V / LiPo Battery Charged:</strong> Keep a spare power bank or battery charged to prevent unexpected shutdowns during live evaluation.
+            </div>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox">
+            <div class="check-text">
+              <strong>Viva Script Ready:</strong> Every team member knows the 60-second elevator pitch and Terzaghi/SLAM/PPG core scientific formulas.
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Master Documentation & Downloads Section -->
   <section class="downloads-section" id="downloads">
     <div class="section-container">
       <div class="section-header">
         <h2 class="section-title">📄 Official Project Publications & Reports</h2>
-        <p class="section-subtitle">Download the state competition PDF documentation, circuit schematics, and presentation brochures.</p>
+        <p class="section-subtitle">Download the state competition PDF documentation, circuit schematics, and presentation brochures directly.</p>
       </div>
 
       <div class="downloads-grid">
@@ -177,7 +260,7 @@
         <div class="doc-card">
           <div class="doc-badge orange">Electronics Report</div>
           <h3>Smart Health & Fall-Detection Bio-Band</h3>
-          <p>Full documentation of ESP32-C3 RISC-V wearable, Beer-Lambert PPG pulse oximetry, and 3D inertial Signal Magnitude Vector ($SMV$) fall algorithm.</p>
+          <p>Full documentation of ESP32-C3 RISC-V wearable, Beer-Lambert PPG pulse oximetry, and 3D inertial Signal Magnitude Vector (SMV) fall algorithm.</p>
           <a href="public/Health_Monitor_Band_Sasthramela_Report.pdf" download class="btn btn-secondary btn-block">
             <span>Download Electronics PDF</span>
           </a>
@@ -193,8 +276,8 @@
         <div class="footer-brand">
           <span class="brand-logo">⚡</span>
           <div>
-            <h3>Lekshmivilasam Applied Research Labs</h3>
-            <p>State School Sasthrolsavam &bull; Kerala State Finals 2026</p>
+            <h3>LVHS Project Support (lvhsprojectsupport)</h3>
+            <p>Lekshmivilasam High School &bull; Sasthrolsavam 2026 Student Engineering Portal</p>
           </div>
         </div>
         <div class="footer-tags">
@@ -202,12 +285,13 @@
           <span class="tag">RPLIDAR SLAM</span>
           <span class="tag">MAX30102 PPG</span>
           <span class="tag">Active LOW Relay</span>
-          <span class="tag">Edge AI</span>
+          <span class="tag">Edge AIoT</span>
+          <span class="tag">Arduino IDE Ready</span>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 Lekshmivilasam Labs. Engineered for community safety and autonomous intelligence.</p>
-        <p>Ready for Vercel Static Hosting &bull; Verified Hardware Firmware</p>
+        <p>&copy; 2026 Lekshmivilasam High School (LVHS). Built to empower student innovators & speed up exhibition builds.</p>
+        <p>100% Static & Fast &bull; Ready for Offline Stall Display &bull; Verified Firmware</p>
       </div>
     </div>
   </footer>

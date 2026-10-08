@@ -1,7 +1,14 @@
+#!/usr/bin/env python3
+"""
+RoboNav High-Reliability Motor Controller
+Direct non-blocking serial communication with CH340 / Arduino motor driver.
+"""
+
 import serial
 import time
 import threading
 import glob
+import os
 
 class MotorController:
     def __init__(self, baudrate=115200):
@@ -10,42 +17,51 @@ class MotorController:
         self.lock = threading.Lock()
         self.connected = False
         self.last_cmd_time = 0
-        self.min_pwm_l = 80 # default start threshold
+        self.min_pwm_l = 80
         self.min_pwm_r = 80
+        
+        # Connect immediately
         self.connect()
 
-        # Start watchdog to keep connection alive and reconnect if lost
+        # Watchdog thread for auto-reconnect & keepalive
         self.watchdog_thread = threading.Thread(target=self._watchdog, daemon=True)
         self.watchdog_thread.start()
         
     def set_min_pwm(self, l, r):
-        self.min_pwm_l = int(l)
-        self.min_pwm_r = int(r)
+        self.min_pwm_l = max(50, min(255, int(l)))
+        self.min_pwm_r = max(50, min(255, int(r)))
 
     def connect(self):
         with self.lock:
             if self.ser and self.ser.is_open:
                 return True
                 
-            ports = glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
-            # Assuming LiDAR is on USB0 and Arduino on USB1 based on hardware audit
-            # Let's try to ping to confirm it's the Arduino
+            # Scan serial ports
+            ports = sorted(glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*'))
+            if not ports:
+                self.connected = False
+                return False
+                
             for port in ports:
                 try:
-                    s = serial.Serial(port, self.baudrate, timeout=2.0)
-                    time.sleep(2.0) # Wait for Arduino to reset
-                    s.write(b'P\n')
-                    resp = s.readline().decode().strip()
-                    if resp == 'OK':
-                        self.ser = s
-                        self.connected = True
-                        print(f"[MotorController] Connected to Arduino on {port}")
-                        return True
-                    s.close()
+                    s = serial.Serial(
+                        port=port,
+                        baudrate=self.baudrate,
+                        timeout=0.1,
+                        write_timeout=0.1
+                    )
+                    time.sleep(0.5) # Brief settle time
+                    # Flush buffers
+                    s.reset_input_buffer()
+                    s.reset_output_buffer()
+                    s.write(b"S\n") # Initial stop command
+                    self.ser = s
+                    self.connected = True
+                    print(f"[✓] MotorController connected to Arduino on {port}")
+                    return True
                 except Exception as e:
-                    pass
+                    print(f"[!] Serial connect error on {port}: {e}")
                     
-            print("[MotorController] Failed to connect to Arduino")
             self.connected = False
             return False
 
@@ -54,23 +70,25 @@ class MotorController:
             if not self.connected or not self.ser:
                 return False
             try:
-                self.ser.write((cmd_str + '\n').encode())
+                self.ser.write((cmd_str + '\n').encode('ascii'))
                 self.last_cmd_time = time.time()
                 return True
             except Exception as e:
-                print(f"[MotorController] Write error: {e}")
+                print(f"[!] MotorController write error: {e}")
                 self.connected = False
                 if self.ser:
-                    self.ser.close()
+                    try: self.ser.close()
+                    except Exception: pass
                     self.ser = None
                 return False
 
     def map_pwm(self, speed, min_pwm):
-        if speed == 0: return 0
+        if abs(speed) < 0.05:
+            return 0
         mag = min(1.0, abs(speed))
         return int(min_pwm + (255 - min_pwm) * mag)
 
-    def drive(self, direction, speed=0):
+    def drive(self, direction, speed=0.5):
         """
         direction: FWD, REV, LEFT, RIGHT, STOP
         speed: 0.0 to 1.0
@@ -78,7 +96,6 @@ class MotorController:
         l_pwm = self.map_pwm(speed, self.min_pwm_l)
         r_pwm = self.map_pwm(speed, self.min_pwm_r)
         
-        # Taking motor swap and front/back swap into account
         if direction == "FWD":
             self.send_command(f"X{-r_pwm},{-l_pwm}")
         elif direction == "REV":
@@ -94,14 +111,13 @@ class MotorController:
         """
         left_speed, right_speed: -1.0 to 1.0
         """
-        # Calculate actual magnitude and apply deadzone mapping
-        l_pwm = self.map_pwm(right_speed, self.min_pwm_l) # swapped left/right
+        l_pwm = self.map_pwm(right_speed, self.min_pwm_l) # swapped L/R
         r_pwm = self.map_pwm(left_speed, self.min_pwm_r)
         
         l_pwm = l_pwm if right_speed >= 0 else -l_pwm
         r_pwm = r_pwm if left_speed >= 0 else -r_pwm
         
-        # Negated for Front/Back swap
+        # Invert for motor orientation
         self.send_command(f"X{-l_pwm},{-r_pwm}")
         
     def stop(self):
@@ -109,13 +125,9 @@ class MotorController:
 
     def _watchdog(self):
         while True:
-            time.sleep(0.2)
+            time.sleep(1.0)
             if not self.connected:
                 self.connect()
-            else:
-                # If no command sent for 0.8s, send a Ping to keep connection alive
-                if time.time() - self.last_cmd_time > 0.8:
-                    self.send_command("P")
 
 # Global singleton
 motor = MotorController()

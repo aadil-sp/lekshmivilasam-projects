@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OfficePi Robot Studio - Hand Tracking & WASD Drive</title>
+<style>
+  :root {
+    --bg-primary: #060911;
+    --bg-card: #0f172a;
+    --border: #1e293b;
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+    --cyan: #38bdf8;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    --indigo: #6366f1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .wrapper {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 800;
+  }
+  .badges-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+  .badge-live { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: #059669; }
+  .badge-ai { background: rgba(56, 189, 248, 0.15); color: var(--cyan); border-color: #0284c7; }
+  .badge-arduino { background: rgba(245, 158, 11, 0.15); color: var(--amber); border-color: #d97706; }
+  .badge-arduino.online { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: #059669; }
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--emerald); box-shadow: 0 0 8px var(--emerald);
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Main Viewport */
+  .viewport-card {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-container {
+    width: 100%;
+    max-height: 60vh;
+    aspect-ratio: 4 / 3;
+    position: relative;
+    background: #020408;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Mode Bar */
+  .mode-bar {
+    display: flex;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mode-btn-group {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid var(--border);
+    background: #1e293b;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .mode-btn:hover { background: #334155; }
+  .mode-btn.active-follow {
+    background: #059669;
+    border-color: #10b981;
+    color: #fff;
+  }
+  .mode-btn.active-manual {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: #090d16;
+  }
+  .mode-btn.btn-stop {
+    background: #dc2626;
+    border-color: #ef4444;
+    color: #fff;
+  }
+
+  /* Controls Grid */
+  .controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 900px) {
+    .controls-grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cyan);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn-row { display: flex; gap: 8px; }
+  .btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: #1e293b;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn:hover { background: #334155; }
+  .btn.active {
+    background: var(--cyan);
+    color: #090d16;
+    border-color: var(--cyan);
+  }
+
+  /* Virtual D-Pad */
+  .dpad-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 6px;
+    max-width: 220px;
+    margin: 0 auto;
+  }
+  .dpad-btn {
+    padding: 14px 10px;
+    background: #1e293b;
+    border: 1px solid var(--border);
+    color: #fff;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+  }
+  .dpad-btn:active, .dpad-btn.pressed {
+    background: var(--cyan) !important;
+    color: #090d16 !important;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .stat-item {
+    background: #090d16;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-label { font-size: 10px; color: var(--text-sub); }
+  .stat-val { font-family: 'SF Mono', monospace; font-size: 13px; font-weight: 800; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <span>🤖 OfficePi Robot Studio</span>
+      <span style="font-size:11px; color:var(--text-sub); font-weight:normal;">Hand Follow &amp; WASD Drive</span>
+    </div>
+    <div class="badges-group">
+      <div class="badge badge-arduino" id="arduinoBadge">
+        <span>🔌 ARDUINO: NO USB</span>
+      </div>
+      <div class="badge badge-ai" id="aiStatusBadge">
+        <span>✋ AI: INDEX TIP (L8)</span>
+      </div>
+      <div class="badge badge-live">
+        <div class="pulse-dot"></div>
+        <span id="camSourceBadge">CSI RIBBON (35 FPS)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ROBOT MODE CONTROL BAR -->
+  <div class="mode-bar">
+    <span style="font-size:12px; font-weight:700; color:var(--text-sub);">ROBOT MODE:</span>
+    <div class="mode-btn-group">
+      <button class="mode-btn active-follow" id="btnModeFollow" onclick="setMode('HAND_FOLLOW')">✋ HAND FOLLOW</button>
+      <button class="mode-btn" id="btnModeManual" onclick="setMode('MANUAL')">🎮 MANUAL (WASD)</button>
+      <button class="mode-btn btn-stop" id="btnModeStop" onclick="setMode('STOPPED')">🛑 EMERGENCY STOP</button>
+    </div>
+  </div>
+
+  <!-- VIEWPORT -->
+  <div class="viewport-card" id="viewCard">
+    <div class="video-container">
+      <img id="videoStream" src="/video_feed" alt="Live Camera Feed" />
+    </div>
+  </div>
+
+  <!-- CONTROLS & STATS GRID -->
+  <div class="controls-grid">
+
+    <!-- MANUAL WASD JOYSTICK -->
+    <div class="card">
+      <div class="card-title">
+        <span>🎮 Manual Driving Controls</span>
+        <span style="font-size:10px; color:var(--text-sub);">Keys: W A S D / Space</span>
+      </div>
+      
+      <div class="dpad-container">
+        <div></div>
+        <button class="dpad-btn" id="btnW" onmousedown="startDrive('FWD')" onmouseup="stopDrive()" ontouchstart="startDrive('FWD')" ontouchend="stopDrive()">▲ W</button>
+        <div></div>
+        <button class="dpad-btn" id="btnA" onmousedown="startDrive('LEFT')" onmouseup="stopDrive()" ontouchstart="startDrive('LEFT')" ontouchend="stopDrive()">◀ A</button>
+        <button class="dpad-btn" style="background:#dc2626;" onclick="emergencyStop()">■</button>
+        <button class="dpad-btn" id="btnD" onmousedown="startDrive('RIGHT')" onmouseup="stopDrive()" ontouchstart="startDrive('RIGHT')" ontouchend="stopDrive()">D ▶</button>
+        <div></div>
+        <button class="dpad-btn" id="btnS" onmousedown="startDrive('REV')" onmouseup="stopDrive()" ontouchstart="startDrive('REV')" ontouchend="stopDrive()">▼ S</button>
+        <div></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
+        <span style="font-size:11px; color:var(--text-sub);">Drive Power:</span>
+        <select id="speedSelect" style="background:#1e293b; color:#fff; border:1px solid var(--border); border-radius:4px; padding:3px 8px; font-size:11px;">
+          <option value="180">Low (180 PWM)</option>
+          <option value="220" selected>Normal (220 PWM)</option>
+          <option value="255">Turbo (255 PWM)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- HAND TRACKING & TARGET TELEMETRY -->
+    <div class="card">
+      <div class="card-title">
+        <span>✋ Hand Tracking (Landmark 8)</span>
+        <button class="btn" id="btnToggleAi" style="padding:3px 6px; font-size:10px; background:#059669;" onclick="toggleTracking()">ENABLED</button>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-label">Index Tip (L8)</span>
+          <span class="stat-val" id="valIndexTip" style="color:var(--emerald);">-- , --</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Center Error (dX, dY)</span>
+          <span class="stat-val" id="valOffset" style="color:var(--cyan);">0, 0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Hand Proximity</span>
+          <span class="stat-val" id="valSize">-- px</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Tracking Lock</span>
+          <span class="stat-val" id="valLock" style="color:var(--amber);">SEARCHING</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HARDWARE & NETWORK VITALS -->
+    <div class="card">
+      <div class="card-title">
+        <span>📊 System &amp; Hardware</span>
+        <span id="valHostIp" style="font-size:10px; color:var(--text-sub);">10.68.210.43:5000</span>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-label">Frame Rate</span>
+          <span class="stat-val" id="valFps" style="color:var(--cyan);">35.0 FPS</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">CPU Temp</span>
+          <span class="stat-val" id="valTemp">--°C</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Arduino Port</span>
+          <span class="stat-val" id="valSerialPort" style="font-size:11px; color:var(--amber);">NO USB</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Active Pinset</span>
+          <span class="stat-val" id="valPinset" style="font-size:11px; color:var(--emerald);">0 (UNIVERSAL)</span>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:4px;">
+        <button class="btn" onclick="selectCamera('csi')">🎥 CSI Ribbon</button>
+        <button class="btn" onclick="selectCamera('usb')">📷 USB Cam</button>
+        <button class="btn" onclick="toggleFullscreen()">⛶ Full</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ARDUINO MOTOR PIN CONFIGURATION & DIAGNOSTICS -->
+  <div class="card" style="background:#090d16; border-color:#334155;">
+    <div class="card-title">
+      <span>🔧 Arduino Motor Pin Configuration &amp; Diagnostic Tool</span>
+      <span id="diagnosticStatus" style="font-size:11px; color:var(--emerald);">Ready</span>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:280px;">
+        <span style="font-size:11px; color:var(--text-sub); white-space:nowrap;">Motor Pin Profile:</span>
+        <select id="pinsetSelect" onchange="changePinset()" style="flex:1; background:#1e293b; color:#fff; border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:11px; font-weight:bold;">
+          <option value="0" selected>🌟 Preset 0: Auto Universal Broadcast (Drives All Standard Pins)</option>
+          <option value="1">Preset 1: (ENA:6, IN1:9, IN2:10, IN3:11, IN4:12, ENB:5)</option>
+          <option value="2">Preset 2: (ENA:5, IN1:6, IN2:7, IN3:8, IN4:9, ENB:10)</option>
+          <option value="3">Preset 3: (ENA:5, IN1:7, IN2:8, IN3:9, IN4:10, ENB:6)</option>
+          <option value="4">Preset 4: (ENA:3, IN1:2, IN2:4, IN3:5, IN4:7, ENB:6)</option>
+          <option value="5">Preset 5: 4-Wire PWM (IN1:5, IN2:6, IN3:9, IN4:10 - Jumpers ON)</option>
+          <option value="6">Preset 6: 4-Wire Digital (IN1:2, IN2:3, IN3:4, IN4:5)</option>
+          <option value="7">Preset 7: 4-Wire Digital (IN1:7, IN2:8, IN3:9, IN4:10)</option>
+          <option value="8">Preset 8: 4-Wire Digital (IN1:8, IN2:9, IN3:10, IN4:11)</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap:6px;">
+        <button class="btn" style="background:#0284c7;" onclick="testDriveTimed('FWD', 1500)">▶ Test FWD 1.5s</button>
+        <button class="btn" style="background:#059669;" onclick="testDriveTimed('LEFT', 1000)">◀ Test Left 1s</button>
+        <button class="btn" style="background:#059669;" onclick="testDriveTimed('RIGHT', 1000)">▶ Test Right 1s</button>
+        <button class="btn" style="background:#d97706;" onclick="testDriveTimed('REV', 1500)">▼ Test REV 1.5s</button>
+      </div>
+    </div>
+
+    <!-- Individual Pin Pulse Diagnostics -->
+    <div style="margin-top:6px;">
+      <span style="font-size:10px; color:var(--text-sub); display:block; margin-bottom:4px;">Pulse Individual Arduino Pin (1s test to check which wire moves which motor):</span>
+      <div style="display:flex; flex-wrap:wrap; gap:5px;">
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="pulsePin(2)">Pin D2</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="pulsePin(3)">Pin D3 (PWM)</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="pulsePin(4)">Pin D4</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px; background:#4338ca;" onclick="pulsePin(5)">Pin D5 (PWM)</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px; background:#4338ca;" onclick="pulsePin(6)">Pin D6 (PWM)</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="pulsePin(7)">Pin D7</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="pulsePin(8)">Pin D8</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px; background:#4338ca;" onclick="pulsePin(9)">Pin D9 (PWM)</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px; background:#4338ca;" onclick="pulsePin(10)">Pin D10 (PWM)</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px; background:#4338ca;" onclick="pulsePin(11)">Pin D11 (PWM)</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="pulsePin(12)">Pin D12</button>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="pulsePin(13)">Pin D13</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentMode = "MANUAL";
+let driveInterval = null;
+let activeCmd = null;
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btnModeFollow').className = (mode === 'HAND_FOLLOW' ? 'mode-btn active-follow' : 'mode-btn');
+  document.getElementById('btnModeManual').className = (mode === 'MANUAL' ? 'mode-btn active-manual' : 'mode-btn');
+  document.getElementById('btnModeStop').className = (mode === 'STOPPED' ? 'mode-btn btn-stop' : 'mode-btn');
+
+  fetch('/api/set_mode', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({mode: mode})
+  });
+}
+
+function getSelectedSpeed() {
+  return parseInt(document.getElementById('speedSelect').value || 220);
+}
+
+function sendDrive(cmd) {
+  fetch('/api/drive', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({cmd: cmd, speed: getSelectedSpeed()})
+  });
+}
+
+function startDrive(cmd) {
+  activeCmd = cmd;
+  if (currentMode !== 'MANUAL') {
+    setMode('MANUAL');
+  }
+  sendDrive(cmd);
+  if (driveInterval) clearInterval(driveInterval);
+  // Send keep-alive pulse every 150ms while held
+  driveInterval = setInterval(() => {
+    if (activeCmd) sendDrive(activeCmd);
+  }, 150);
+}
+
+function stopDrive() {
+  activeCmd = null;
+  if (driveInterval) {
+    clearInterval(driveInterval);
+    driveInterval = null;
+  }
+  sendDrive('STOP');
+}
+
+function emergencyStop() {
+  stopDrive();
+  setMode('STOPPED');
+  fetch('/api/stop', {method: 'POST'});
+}
+
+// WASD & H Keyboard Listeners
+const keyMap = {'W': 'FWD', 'S': 'REV', 'A': 'LEFT', 'D': 'RIGHT'};
+const btnMap = {'W': 'btnW', 'S': 'btnS', 'A': 'btnA', 'D': 'btnD'};
+const heldKeys = new Set();
+
+window.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  const k = e.key.toUpperCase();
+  if (k === 'H') {
+    setMode(currentMode === 'HAND_FOLLOW' ? 'MANUAL' : 'HAND_FOLLOW');
+    return;
+  }
+  if (['W', 'A', 'S', 'D', ' '].includes(k)) {
+    e.preventDefault();
+    if (k === ' ') {
+      emergencyStop();
+      return;
+    }
+    heldKeys.add(k);
+    if (btnMap[k]) document.getElementById(btnMap[k]).classList.add('pressed');
+    startDrive(keyMap[k]);
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  const k = e.key.toUpperCase();
+  if (heldKeys.has(k)) {
+    heldKeys.delete(k);
+    if (btnMap[k]) document.getElementById(btnMap[k]).classList.remove('pressed');
+    if (heldKeys.size === 0) {
+      stopDrive();
+    } else {
+      // Switch to remaining held key
+      const nextKey = Array.from(heldKeys)[heldKeys.size - 1];
+      startDrive(keyMap[nextKey]);
+    }
+  }
+});
+
+function selectCamera(type) {
+  fetch('/api/switch_camera', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({type: type})
+  });
+}
+
+function toggleTracking() {
+  fetch('/api/toggle_tracking', {method: 'POST'})
+    .then(r => r.json())
+    .then(d => {
+      const btn = document.getElementById('btnToggleAi');
+      btn.innerText = d.enabled ? 'ENABLED' : 'DISABLED';
+      btn.style.background = d.enabled ? '#059669' : '#1e293b';
+    });
+}
+
+function toggleFullscreen() {
+  const el = document.getElementById('viewCard');
+  if (!document.fullscreenElement) {
+    el.requestFullscreen().catch(err => alert(err.message));
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+function changePinset() {
+  const p = parseInt(document.getElementById('pinsetSelect').value || 0);
+  const statusEl = document.getElementById('diagnosticStatus');
+  statusEl.innerText = 'Switching pinset...';
+  statusEl.style.color = '#f59e0b';
+  
+  fetch('/api/set_pinset', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({preset: p})
+  })
+  .then(r => r.json())
+  .then(d => {
+    statusEl.innerText = `Active: Preset ${p}`;
+    statusEl.style.color = '#10b981';
+  })
+  .catch(e => {
+    statusEl.innerText = 'Switch failed';
+    statusEl.style.color = '#ef4444';
+  });
+}
+
+function pulsePin(pin) {
+  const statusEl = document.getElementById('diagnosticStatus');
+  statusEl.innerText = `Pulsing Pin D${pin} (PWM 255) for 1s...`;
+  statusEl.style.color = '#38bdf8';
+
+  fetch('/api/pulse_pin', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({pin: pin, pwm: 255, duration: 1000})
+  })
+  .then(r => r.json())
+  .then(d => {
+    setTimeout(() => {
+      statusEl.innerText = `Pin D${pin} Pulse Complete`;
+      statusEl.style.color = '#10b981';
+    }, 1100);
+  });
+}
+
+function testDriveTimed(direction, durationMs) {
+  const statusEl = document.getElementById('diagnosticStatus');
+  statusEl.innerText = `Running ${direction} for ${durationMs/1000}s...`;
+  statusEl.style.color = '#38bdf8';
+
+  startDrive(direction);
+  setTimeout(() => {
+    stopDrive();
+    statusEl.innerText = `Drive ${direction} finished`;
+    statusEl.style.color = '#10b981';
+  }, durationMs);
+}
+
+// Stats & Hardware Telemetry Poller
+setInterval(() => {
+  fetch('/api/stats')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('valFps').innerText = `${d.fps} FPS`;
+      document.getElementById('valTemp').innerText = `${d.cpu_temp || '--'}°C`;
+      document.getElementById('valHostIp').innerText = `${d.host_ip}:5000`;
+
+      // Mode synchronization
+      if (d.robot_mode && d.robot_mode !== currentMode && !activeCmd) {
+        currentMode = d.robot_mode;
+        document.getElementById('btnModeFollow').className = (currentMode === 'HAND_FOLLOW' ? 'mode-btn active-follow' : 'mode-btn');
+        document.getElementById('btnModeManual').className = (currentMode === 'MANUAL' ? 'mode-btn active-manual' : 'mode-btn');
+        document.getElementById('btnModeStop').className = (currentMode === 'STOPPED' ? 'mode-btn btn-stop' : 'mode-btn');
+      }
+
+      // Arduino Serial Status
+      const ardBadge = document.getElementById('arduinoBadge');
+      if (d.arduino && d.arduino.connected) {
+        ardBadge.className = 'badge badge-arduino online';
+        ardBadge.innerText = `🔌 ARDUINO: ${d.arduino.port}`;
+        document.getElementById('valSerialPort').innerText = d.arduino.port;
+        document.getElementById('valSerialPort').style.color = '#34d399';
+      } else {
+        ardBadge.className = 'badge badge-arduino';
+        ardBadge.innerText = '🔌 ARDUINO: NO USB';
+        document.getElementById('valSerialPort').innerText = 'NO USB (SCAN)';
+        document.getElementById('valSerialPort').style.color = '#f59e0b';
+      }
+      
+      if (d.arduino && d.arduino.pinset !== undefined) {
+        const pNames = {
+          0: '0 (UNIVERSAL BROADCAST)',
+          1: '1 (6,9,10,11,12,5)',
+          2: '2 (5,6,7,8,9,10)',
+          3: '3 (5,7,8,9,10,6)',
+          4: '4 (3,2,4,5,7,6)',
+          5: '5 (4-Wire PWM 5,6,9,10)',
+          6: '6 (4-Wire 2-5)',
+          7: '7 (4-Wire 7-10)',
+          8: '8 (4-Wire 8-11)'
+        };
+        const pStr = pNames[d.arduino.pinset] || `${d.arduino.pinset}`;
+        const pinEl = document.getElementById('valPinset');
+        if (pinEl) pinEl.innerText = pStr;
+      }
+
+      // Hand Telemetry
+      if (d.hand && d.hand.found) {
+        document.getElementById('valIndexTip').innerText = `${d.hand.cx}, ${d.hand.cy}`;
+        document.getElementById('valOffset').innerText = `${d.hand.err_x > 0 ? '+' : ''}${d.hand.err_x}, ${d.hand.err_y > 0 ? '+' : ''}${d.hand.err_y}`;
+        document.getElementById('valSize').innerText = `${d.hand.box_size} px`;
+        document.getElementById('valLock').innerText = 'LOCKED (L8)';
+        document.getElementById('valLock').style.color = '#34d399';
+      } else {
+        document.getElementById('valIndexTip').innerText = '-- , --';
+        document.getElementById('valOffset').innerText = '0, 0';
+        document.getElementById('valSize').innerText = '-- px';
+        document.getElementById('valLock').innerText = 'SEARCHING';
+        document.getElementById('valLock').style.color = '#f59e0b';
+      }
+    })
+    .catch(() => {});
+}, 300);
+</script>
+
+</body>
+</html>
