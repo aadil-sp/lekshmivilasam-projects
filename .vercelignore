@@ -1,19 +1,5 @@
-# Ignore all non-web source folders from Vercel Functions detection
-m5stick-kids-controller/
-dobot/
-robotics/
-iot/
-electronics/
-smart_blind_stick/
-master_project/
-i2c_scanner/
-mpu6050_test/
-max30102_test/
-oled_test/
-*.py
-*.command
-*.sh
-*.ino
-*.cpp
-*.h
-*.ini
+.git
+.DS_Store
+__pycache__/
+*.pyc
+arduino-cli.tar.gz
