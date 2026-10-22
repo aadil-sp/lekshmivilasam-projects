@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Farming Assistance Device — Handheld OLED Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+    
+    .oled-font {
+      font-family: 'Share Tech Mono', 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Monochrome Cyan OLED Display Glow */
+    .oled-screen {
+      background-color: #02090f;
+      color: #38bdf8;
+      text-shadow: 0 0 3px rgba(56, 189, 248, 0.75), 0 0 8px rgba(56, 189, 248, 0.35);
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95), 0 0 25px rgba(56, 189, 248, 0.12);
+      border: 3px solid #0f2338;
+    }
+
+    .oled-pixel-grid {
+      background-image: linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+      background-size: 3px 3px;
+    }
+
+    /* Tactile Push Button Styling */
+    .tactile-btn {
+      background: radial-gradient(circle at 35% 35%, #475569, #1e293b);
+      box-shadow: 0 6px 0 #0f172a, 0 8px 12px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.25);
+      transition: all 0.06s ease;
+    }
+    .tactile-btn:active, .tactile-btn.pressed {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #0f172a, 0 3px 6px rgba(0,0,0,0.5);
+    }
+    
+    /* Device Enclosure Texture */
+    .chassis {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 flex flex-col items-center justify-center font-sans">
+
+  <!-- Header Banner -->
+  <header class="text-center mb-6 max-w-4xl w-full">
+    <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-xs font-semibold uppercase tracking-wider mb-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      Interactive Field Device Simulator
+    </div>
+    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center justify-center gap-3">
+      🌾 Smart Farming Assistance Device
+    </h1>
+    <p class="text-slate-400 text-sm mt-1">
+      Arduino Nano (ATmega328P) &bull; 0.96" SSD1306 OLED &bull; 3 Hardware Push Buttons (D2, D3, D4)
+    </p>
+  </header>
+
+  <!-- Main Grid: Handheld Device on Left, Sensor Controls & Console on Right -->
+  <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT: HANDHELD DEVICE ENCLOSURE -->
+    <div class="lg:col-span-6 flex flex-col items-center">
+      <div class="chassis w-full max-w-sm rounded-3xl p-6 border border-slate-700/60 relative">
+        
+        <!-- Screws in corners -->
+        <div class="absolute top-3 left-3 w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-500 flex items-center justify-center"><div class="w-1.5 h-0.5 bg-slate-400"></div></div>
+        <div class="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-500 flex items-center justify-center"><div class="w-1.5 h-0.5 bg-slate-400"></div></div>
+        <div class="absolute bottom-3 left-3 w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-500 flex items-center justify-center"><div class="w-1.5 h-0.5 bg-slate-400"></div></div>
+        <div class="absolute bottom-3 right-3 w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-500 flex items-center justify-center"><div class="w-1.5 h-0.5 bg-slate-400"></div></div>
+
+        <!-- Brand Title on Enclosure -->
+        <div class="flex items-center justify-between px-1 mb-4">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            <span class="text-emerald-400">AGRI-ASSIST</span> HANDHELD
+          </div>
+          <div class="text-[10px] text-slate-500 font-mono">SSD1306 128x64</div>
+        </div>
+
+        <!-- 0.96" OLED Screen Bezel & Display Area -->
+        <div class="bg-black p-3 rounded-2xl border-2 border-slate-800 shadow-inner">
+          <div id="oledScreen" class="oled-screen oled-pixel-grid oled-font rounded-lg p-3 w-full h-48 flex flex-col justify-between text-xs select-none">
+            <!-- Screen content generated dynamically by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Device Status LED and Label -->
+        <div class="flex items-center justify-between mt-4 px-2">
+          <div class="flex items-center gap-2">
+            <span id="pwrLed" class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+            <span class="text-[10px] font-mono text-slate-400">POWER 5V</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="txLed" class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></span>
+            <span class="text-[10px] font-mono text-slate-400">UART 115200</span>
+          </div>
+        </div>
+
+        <!-- 3 TACTILE NAVIGATION PUSH BUTTONS -->
+        <div class="mt-6 pt-5 border-t border-slate-800 flex justify-around items-center">
+          
+          <!-- LEFT BUTTON (D2) -->
+          <div class="flex flex-col items-center gap-2">
+            <button id="btnLeft" class="tactile-btn w-14 h-14 rounded-full flex items-center justify-center text-white active:outline-none">
+              <svg class="w-6 h-6 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="text-center">
+              <span class="block text-[11px] font-bold text-slate-200">LEFT</span>
+              <span class="block text-[9px] font-mono text-slate-500">PIN D2</span>
+            </div>
+          </div>
+
+          <!-- SELECT / BACK BUTTON (D4) -->
+          <div class="flex flex-col items-center gap-2">
+            <button id="btnSelect" class="tactile-btn w-14 h-14 rounded-full flex items-center justify-center text-emerald-400 active:outline-none border border-emerald-500/30">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </button>
+            <div class="text-center">
+              <span class="block text-[11px] font-bold text-emerald-400">SELECT / BACK</span>
+              <span class="block text-[9px] font-mono text-slate-500">PIN D4</span>
+            </div>
+          </div>
+
+          <!-- RIGHT BUTTON (D3) -->
+          <div class="flex flex-col items-center gap-2">
+            <button id="btnRight" class="tactile-btn w-14 h-14 rounded-full flex items-center justify-center text-white active:outline-none">
+              <svg class="w-6 h-6 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div class="text-center">
+              <span class="block text-[11px] font-bold text-slate-200">RIGHT</span>
+              <span class="block text-[9px] font-mono text-slate-500">PIN D3</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Keyboard hints -->
+        <div class="mt-4 text-center text-[10px] text-slate-500">
+          Keyboard: <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300">←</kbd> Left &bull; <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300">→</kbd> Right &bull; <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300">Enter</kbd> Select/Back
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: ENVIRONMENTAL SENSOR CONTROLS & SERIAL MONITOR -->
+    <div class="lg:col-span-6 flex flex-col gap-6">
+      
+      <!-- Sensor Slider Controls Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+        <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          Analog & Digital Sensor Simulation
+        </h2>
+
+        <!-- Sensor 1: Soil Moisture (Analog Pin A0) -->
+        <div class="mb-4">
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+              🌱 Soil Moisture Sensor <span class="text-[10px] font-mono text-emerald-400">(Pin A0)</span>
+            </span>
+            <span id="soilValLabel" class="font-mono text-emerald-400 font-bold">65% (ADC: 432)</span>
+          </div>
+          <input id="sliderSoil" type="range" min="0" max="100" value="65" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+          <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+            <span>Dry Soil (0%)</span>
+            <span>Optimal (40-70%)</span>
+            <span>Waterlogged (100%)</span>
+          </div>
+        </div>
+
+        <!-- Sensor 2: DHT11 Air Temperature & Humidity (Pin A1) -->
+        <div class="mb-4">
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+              🌡️ Air Temperature (DHT11) <span class="text-[10px] font-mono text-sky-400">(Pin A1)</span>
+            </span>
+            <span id="tempValLabel" class="font-mono text-sky-400 font-bold">28.5 °C (83.3 °F)</span>
+          </div>
+          <input id="sliderTemp" type="range" min="10" max="45" step="0.5" value="28.5" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-500">
+          <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+            <span>10°C (Cold)</span>
+            <span>28°C (Ideal)</span>
+            <span>45°C (Heat Stress)</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+              💧 Relative Humidity (DHT11) <span class="text-[10px] font-mono text-sky-400">(Pin A1)</span>
+            </span>
+            <span id="humValLabel" class="font-mono text-sky-400 font-bold">62 %RH</span>
+          </div>
+          <input id="sliderHum" type="range" min="15" max="95" value="62" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-500">
+          <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+            <span>15% (Arid)</span>
+            <span>60% (Comfortable)</span>
+            <span>95% (High Fungal Risk)</span>
+          </div>
+        </div>
+
+        <!-- Sensor 3: LDR Sunlight Sensor (Analog Pin A2) -->
+        <div class="mb-2">
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+              ☀️ LDR Sunlight Intensity <span class="text-[10px] font-mono text-amber-400">(Pin A2)</span>
+            </span>
+            <span id="ldrValLabel" class="font-mono text-amber-400 font-bold">74% (ADC: 755)</span>
+          </div>
+          <input id="sliderLdr" type="range" min="0" max="100" value="74" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+          <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+            <span>Dark / Night (0%)</span>
+            <span>Optimal Sun (50-80%)</span>
+            <span>High Intensity (100%)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Live Virtual Serial Monitor (UART 115200 Baud) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+          <div class="text-xs font-bold text-slate-300 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            Serial Monitor Telemetry (115200 Baud)
+          </div>
+          <button id="btnClearLogs" class="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 rounded">
+            Clear
+          </button>
+        </div>
+        <div id="serialConsole" class="bg-black text-emerald-400 font-mono text-[11px] p-3 rounded-xl h-36 overflow-y-auto space-y-1">
+          <div>[INIT] AGRI-ASSISTANT Smart Farming Device Ready.</div>
+          <div>[INIT] Sensors initialized: Soil(A0), DHT11(A1), LDR(A2).</div>
+          <div>[DATA] Soil A0: 432 (65%) | LDR A2: 755 (74%) | Temp: 28.5C | Hum: 62% | Active Page: 0</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // State Variables
+    let currentPage = 0;
+    const TOTAL_PAGES = 4;
+    let heartbeatTick = 0;
+    let showFahrenheit = false;
+
+    // Sensor Values
+    let soilPercent = 65;
+    let soilRaw = 432;
+    let dhtTemp = 28.5;
+    let dhtHumidity = 62;
+    let ldrPercent = 74;
+    let ldrRaw = 755;
+
+    // DOM Elements
+    const oled = document.getElementById('oledScreen');
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
+    const btnSelect = document.getElementById('btnSelect');
+    const sliderSoil = document.getElementById('sliderSoil');
+    const sliderTemp = document.getElementById('sliderTemp');
+    const sliderHum = document.getElementById('sliderHum');
+    const sliderLdr = document.getElementById('sliderLdr');
+    const soilValLabel = document.getElementById('soilValLabel');
+    const tempValLabel = document.getElementById('tempValLabel');
+    const humValLabel = document.getElementById('humValLabel');
+    const ldrValLabel = document.getElementById('ldrValLabel');
+    const serialConsole = document.getElementById('serialConsole');
+    const btnClearLogs = document.getElementById('btnClearLogs');
+    const txLed = document.getElementById('txLed');
+
+    // Web Audio Click Synthesizer
+    let audioCtx = null;
+    function playClickSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.04);
+      } catch (e) {}
+    }
+
+    // Append to virtual serial console
+    function logSerial(msg, tag = "DATA") {
+      const line = document.createElement('div');
+      const timeStr = new Date().toLocaleTimeString();
+      if (tag === "NAV") {
+        line.className = "text-sky-400";
+        line.textContent = `[${timeStr}] 🧭 ${msg}`;
+      } else {
+        line.className = "text-emerald-400";
+        line.textContent = `[${timeStr}] ${msg}`;
+      }
+      serialConsole.appendChild(line);
+      serialConsole.scrollTop = serialConsole.scrollHeight;
+
+      // Blink TX LED
+      txLed.classList.add('bg-white');
+      setTimeout(() => txLed.classList.remove('bg-white'), 120);
+    }
+
+    // Helper: generate progress bar ASCII / Box graphics
+    function renderProgressBar(pct) {
+      const totalBlocks = 18;
+      const filledBlocks = Math.round((pct / 100) * totalBlocks);
+      const emptyBlocks = totalBlocks - filledBlocks;
+      const bar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
+      return `[${bar}] ${pct}%`;
+    }
+
+    // Generate Footer Dots: [*] [ ] [ ] [ ]
+    function renderFooterNav(page) {
+      let dots = '';
+      for (let i = 0; i < TOTAL_PAGES; i++) {
+        dots += (i === page) ? ' ●' : ' ○';
+      }
+      return `
+        <div class="w-full border-t border-sky-400/40 pt-1 flex justify-between items-center text-[11px] font-mono">
+          <span>&lt;D2</span>
+          <span class="tracking-widest">${dots}</span>
+          <span>D3&gt;</span>
+        </div>
+      `;
+    }
+
+    // OLED Renderers
+    function renderOLED() {
+      heartbeatTick = (heartbeatTick + 1) % 4;
+      const heartIcon = heartbeatTick < 2 ? '●' : '○';
+
+      if (currentPage === 0) {
+        // PAGE 0: DASHBOARD
+        const soilStatus = soilPercent < 30 ? '[DRY:IRRIGATE]' : (soilPercent <= 70 ? '[OPTIMAL]' : '[WATERLOGGED]');
+        const ldrStatus = ldrPercent < 20 ? '[NIGHT/DARK]' : (ldrPercent <= 75 ? '[GOOD LIGHT]' : '[BRIGHT SUN]');
+        const tempDisplay = showFahrenheit ? `${Math.round((dhtTemp * 1.8) + 32)}°F` : `${Math.round(dhtTemp)}°C`;
+
+        oled.innerHTML = `
+          <div>
+            <div class="bg-sky-400 text-slate-950 font-bold px-1.5 py-0.5 rounded flex justify-between items-center text-[11px] mb-2">
+              <span>SMART FARM DASHBOARD</span>
+              <span>${heartIcon}</span>
+            </div>
+            <div class="space-y-1.5 text-[11px] leading-tight">
+              <div class="flex justify-between">
+                <span>SOIL: <b class="text-white">${soilPercent}%</b></span>
+                <span class="${soilPercent < 30 ? 'text-amber-300' : 'text-emerald-300'} font-bold">${soilStatus}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>AIR : <b class="text-white">${tempDisplay}</b> | HUM: <b class="text-white">${Math.round(dhtHumidity)}%</b></span>
+                <span class="text-sky-300">[OK]</span>
+              </div>
+              <div class="flex justify-between">
+                <span>SUN : <b class="text-white">${ldrPercent}%</b></span>
+                <span class="${ldrPercent < 20 ? 'text-slate-400' : 'text-amber-300'} font-bold">${ldrStatus}</span>
+              </div>
+              <div class="text-[10px] text-center text-sky-300/80 pt-0.5">[D4: Back / Refresh]</div>
+            </div>
+          </div>
+          ${renderFooterNav(0)}
+        `;
+      } else if (currentPage === 1) {
+        // PAGE 1: SOIL MOISTURE
+        let advice = "OPTIMAL ROOT MOIST";
+        if (soilPercent < 25) advice = "CRITICAL! IRRIGATE";
+        else if (soilPercent < 45) advice = "DRY - SCHEDULE WATER";
+        else if (soilPercent > 75) advice = "WET - DRAINAGE ALERT";
+
+        oled.innerHTML = `
+          <div>
+            <div class="border-b border-sky-400/50 pb-0.5 flex justify-between text-[11px] font-bold text-white mb-1.5">
+              <span>P1: SOIL MOISTURE</span>
+              <span class="text-[10px] font-normal text-sky-300">PIN A0</span>
+            </div>
+            <div class="space-y-1 text-[11px]">
+              <div class="flex justify-between">
+                <span>Raw ADC: <b class="text-white">${soilRaw}</b> / 1023</span>
+                <span>VWC: <b class="text-white">${soilPercent}%</b></span>
+              </div>
+              <div class="font-mono text-[10px] text-emerald-300 py-0.5">
+                ${renderProgressBar(soilPercent)}
+              </div>
+              <div class="text-[10px] text-slate-300 pt-1">
+                Advice: <span class="font-bold text-white">${advice}</span>
+              </div>
+            </div>
+          </div>
+          ${renderFooterNav(1)}
+        `;
+      } else if (currentPage === 2) {
+        // PAGE 2: AIR & CLIMATE
+        const tempF = Math.round((dhtTemp * 1.8) + 32);
+        let envStatus = "HEALTHY MICROCLIMATE";
+        if (dhtTemp > 35.0) envStatus = "HEAT STRESS ON CROPS";
+        else if (dhtTemp < 15.0) envStatus = "CHILLING / COLD RISK";
+        else if (dhtHumidity > 80.0) envStatus = "HIGH FUNGAL DISEASE";
+
+        oled.innerHTML = `
+          <div>
+            <div class="border-b border-sky-400/50 pb-0.5 flex justify-between text-[11px] font-bold text-white mb-1.5">
+              <span>P2: AIR & CLIMATE</span>
+              <span class="text-[10px] font-normal text-sky-300">PIN A1</span>
+            </div>
+            <div class="space-y-1 text-[11px]">
+              <div class="flex justify-between">
+                <span>Temp: <b class="text-white">${dhtTemp.toFixed(1)}°C</b> (${tempF}°F)</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Humidity: <b class="text-white">${dhtHumidity}% RH</b></span>
+              </div>
+              <div class="font-mono text-[10px] text-sky-300 py-0.5">
+                ${renderProgressBar(Math.round(dhtHumidity))}
+              </div>
+              <div class="text-[10px] text-slate-300 pt-0.5">
+                Env: <span class="font-bold text-white">${envStatus}</span>
+              </div>
+            </div>
+          </div>
+          ${renderFooterNav(2)}
+        `;
+      } else if (currentPage === 3) {
+        // PAGE 3: SOLAR LIGHT
+        let lightStatus = "GOOD PHOTOSYNTHESIS";
+        if (ldrPercent < 15) lightStatus = "NIGHT / SHADOWED";
+        else if (ldrPercent < 45) lightStatus = "LOW LIGHT (SHADE)";
+        else if (ldrPercent > 80) lightStatus = "HIGH SOLAR SCORCH";
+
+        oled.innerHTML = `
+          <div>
+            <div class="border-b border-sky-400/50 pb-0.5 flex justify-between text-[11px] font-bold text-white mb-1.5">
+              <span>P3: SOLAR LIGHT</span>
+              <span class="text-[10px] font-normal text-sky-300">PIN A2</span>
+            </div>
+            <div class="space-y-1 text-[11px]">
+              <div class="flex justify-between">
+                <span>Raw ADC: <b class="text-white">${ldrRaw}</b> / 1023</span>
+                <span>Lum: <b class="text-white">${ldrPercent}%</b></span>
+              </div>
+              <div class="font-mono text-[10px] text-amber-300 py-0.5">
+                ${renderProgressBar(ldrPercent)}
+              </div>
+              <div class="text-[10px] text-slate-300 pt-1">
+                Sun: <span class="font-bold text-white">${lightStatus}</span>
+              </div>
+            </div>
+          </div>
+          ${renderFooterNav(3)}
+        `;
+      }
+    }
+
+    // Button Click Handlers
+    function triggerLeft() {
+      playClickSound();
+      btnLeft.classList.add('pressed');
+      setTimeout(() => btnLeft.classList.remove('pressed'), 120);
+
+      if (currentPage === 0) {
+        currentPage = TOTAL_PAGES - 1;
+      } else {
+        currentPage--;
+      }
+      logSerial(`[NAV] D2 Pressed -> Page ${currentPage}`, "NAV");
+      renderOLED();
+    }
+
+    function triggerRight() {
+      playClickSound();
+      btnRight.classList.add('pressed');
+      setTimeout(() => btnRight.classList.remove('pressed'), 120);
+
+      currentPage = (currentPage + 1) % TOTAL_PAGES;
+      logSerial(`[NAV] D3 Pressed -> Page ${currentPage}`, "NAV");
+      renderOLED();
+    }
+
+    function triggerSelect() {
+      playClickSound();
+      btnSelect.classList.add('pressed');
+      setTimeout(() => btnSelect.classList.remove('pressed'), 120);
+
+      if (currentPage !== 0) {
+        currentPage = 0;
+        logSerial(`[NAV] D4 Select/Back -> Jump to Dashboard (Page 0)`, "NAV");
+      } else {
+        showFahrenheit = !showFahrenheit;
+        logSerial(`[NAV] D4 Select -> Refresh Sensors & Toggle Unit (${showFahrenheit ? '°F' : '°C'})`, "NAV");
+      }
+      renderOLED();
+    }
+
+    // Attach Button Events
+    btnLeft.addEventListener('click', triggerLeft);
+    btnRight.addEventListener('click', triggerRight);
+    btnSelect.addEventListener('click', triggerSelect);
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        triggerLeft();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        triggerRight();
+      } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        triggerSelect();
+      }
+    });
+
+    // Slider Event Handlers
+    sliderSoil.addEventListener('input', (e) => {
+      soilPercent = parseInt(e.target.value);
+      // Map % back to raw ADC: 0% = 950 (dry air), 100% = 280 (saturated)
+      soilRaw = Math.round(950 - ((950 - 280) * (soilPercent / 100)));
+      soilValLabel.textContent = `${soilPercent}% (ADC: ${soilRaw})`;
+      renderOLED();
+    });
+
+    sliderTemp.addEventListener('input', (e) => {
+      dhtTemp = parseFloat(e.target.value);
+      const tempF = ((dhtTemp * 1.8) + 32).toFixed(1);
+      tempValLabel.textContent = `${dhtTemp.toFixed(1)} °C (${tempF} °F)`;
+      renderOLED();
+    });
+
+    sliderHum.addEventListener('input', (e) => {
+      dhtHumidity = parseInt(e.target.value);
+      humValLabel.textContent = `${dhtHumidity} %RH`;
+      renderOLED();
+    });
+
+    sliderLdr.addEventListener('input', (e) => {
+      ldrPercent = parseInt(e.target.value);
+      // Map % to raw ADC: 0% = 60 (dark), 100% = 950 (sun)
+      ldrRaw = Math.round(60 + ((950 - 60) * (ldrPercent / 100)));
+      ldrValLabel.textContent = `${ldrPercent}% (ADC: ${ldrRaw})`;
+      renderOLED();
+    });
+
+    btnClearLogs.addEventListener('click', () => {
+      serialConsole.innerHTML = '<div class="text-slate-500">[CLEARED] Console cleared.</div>';
+    });
+
+    // Periodic 2-second serial output telemetry pulse
+    setInterval(() => {
+      const msg = `[DATA] Soil A0: ${soilRaw} (${soilPercent}%) | LDR A2: ${ldrRaw} (${ldrPercent}%) | Temp: ${dhtTemp.toFixed(1)}C | Hum: ${dhtHumidity}% | Active Page: ${currentPage}`;
+      logSerial(msg, "DATA");
+    }, 2500);
+
+    // Initial render
+    renderOLED();
+  </script>
+</body>
+</html>
