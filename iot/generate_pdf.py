@@ -270,5 +270,5 @@ def generate_pdf(output_filename):
     print(f"[OK] PDF generated successfully: {output_filename}")
 
 if __name__ == "__main__":
-    out_path = "/Users/aadilsp/Desktop/Antigravity/Lekshmivilasam/iot/Landslide_Alert_System_Sasthramela_Report.pdf"
+    out_path = "./iot/Landslide_Alert_System_Sasthramela_Report.pdf"
     generate_pdf(out_path)

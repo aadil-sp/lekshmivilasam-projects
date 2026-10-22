@@ -1,7 +1,7 @@
 /*
   =============================================================================
   RoboNav-SLAM: Differential Drive Low-Level Motor & Sensor Controller
-  Kerala State Sasthrolsavam (Robotics Exhibition) - Lekshmivilasam Labs
+  Kerala State Sasthrolsavam (Robotics Exhibition) - Sasthrolsavam Innovation Labs
   
   Target Microcontroller: ESP32-WROOM-32 (Dual Core 240MHz)
   Features:

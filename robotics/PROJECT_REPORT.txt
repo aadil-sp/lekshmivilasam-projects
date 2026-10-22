@@ -1,7 +1,7 @@
 ================================================================================
 ROBONAV-SLAM: AUTONOMOUS LIDAR & VISION-GUIDED INDOOR NAVIGATION ROBOT
 Kerala State School Sasthrolsavam (Sasthramela) - Robotics Category
-Institution: Lekshmivilasam Labs
+Institution: Sasthrolsavam Innovation Labs
 ================================================================================
 
 1. EXECUTIVE SUMMARY & ABSTRACT

@@ -64,5 +64,5 @@ Screen 4: Wi-Fi Hotspot (SSID, URL: 192.168.4.1, Clients, Buzzer State)
 TOTAL COST:                         Rs. 1,400 INR
 
 ========================================================================================
-Kerala State Sasthrolsavam &bull; Lekshmivilasam Electronics Department
+Kerala State Sasthrolsavam &bull; Applied Electronics Research Group
 ========================================================================================

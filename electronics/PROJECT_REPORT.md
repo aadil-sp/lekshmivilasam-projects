@@ -108,4 +108,4 @@ The system implements an on-device Edge Fall Detection Algorithm that detects fr
 *Answer:* In remote disaster zones, rural clinics, or during cellular network blackouts, cloud-dependent devices fail completely. The captive portal operates completely decentralized and off-grid. Any smartphone connecting to the device Wi-Fi immediately pops up the telemetry screen without downloading any app or creating accounts.
 
 ---
-*Kerala State Sasthrolsavam Project Portfolio &bull; Lekshmivilasam*
+*Kerala State Sasthrolsavam Project Portfolio &bull; Applied Innovation Labs*

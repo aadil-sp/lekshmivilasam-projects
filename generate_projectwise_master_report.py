@@ -49,7 +49,7 @@ class ProjectwiseNumberedCanvas(canvas.Canvas):
         # Footer (Bottom of Page)
         self.line(50, 45, 612 - 50, 45)
         self.setFont("Helvetica", 8)
-        self.drawString(50, 32, "Lekshmivilasam Labs • State Robotics, IoT & Bio-Electronics Research")
+        self.drawString(50, 32, "State Robotics, IoT & Bio-Electronics Research")
         page_str = f"Page {self._pageNumber} of {page_count}"
         self.drawRightString(612 - 50, 32, page_str)
         self.restoreState()
@@ -140,7 +140,7 @@ def build_pdf(filename):
     story.append(Spacer(1, 15))
 
     cover_meta = [
-        [Paragraph("<b>Institution:</b>", body_bold), Paragraph("Lekshmivilasam Science & Applied Engineering Labs", body_style)],
+        [Paragraph("<b>Institution:</b>", body_bold), Paragraph("Applied Engineering & Research Labs", body_style)],
         [Paragraph("<b>Event & Category:</b>", body_bold), Paragraph("Kerala State Sasthrolsavam / Sasthramela 2026 (State Finals)", body_style)],
         [Paragraph("<b>Project 1 (Robotics):</b>", body_bold), Paragraph("RoboNav-SLAM: Autonomous LiDAR & Vision Mobile Robot", body_style)],
         [Paragraph("<b>Project 2 (IoT):</b>", body_bold), Paragraph("AIoT Disaster Early Warning & Rain Simulation Station", body_style)],
@@ -627,5 +627,5 @@ def build_pdf(filename):
     print(f"[OK] Project-wise Master PDF successfully built: {filename}")
 
 if __name__ == "__main__":
-    out_pdf = "/Users/aadilsp/Desktop/Antigravity/Lekshmivilasam/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf"
+    out_pdf = "/Users/aadilsp/Desktop/Antigravity/Applied Innovation Labs/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf"
     build_pdf(out_pdf)

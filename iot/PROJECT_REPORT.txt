@@ -72,5 +72,5 @@ V8: Risk Level Text Banner
 TOTAL ESTIMATED COST:               Rs. 1,440 INR
 
 ========================================================================================
-Kerala State Sasthrolsavam &bull; Lekshmivilasam IoT Division
+Kerala State Sasthrolsavam &bull; Applied IoT & Disaster Mitigation Group
 ========================================================================================

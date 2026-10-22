@@ -14,7 +14,7 @@
 Launch the full interactive visual GUI:
 
 ```bash
-python3 /Users/aadilsp/Desktop/Antigravity/Lekshmivilasam/dobot/src/dobot_gui.py
+python3 ./dobot/src/dobot_gui.py
 ```
 > **URL:** [http://127.0.0.1:8080](http://127.0.0.1:8080)
 

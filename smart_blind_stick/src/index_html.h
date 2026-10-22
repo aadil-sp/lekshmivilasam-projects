@@ -478,7 +478,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
     </div>
 
     <footer>
-      Smart Blind Stick &copy; 2026 Lekshmivilasam. Ultrasonic & Switch Telemetry on ESP8266.
+      Smart Blind Stick &copy; 2026 Applied Innovation Labs. Ultrasonic & Switch Telemetry on ESP8266.
     </footer>
 
   </div>

@@ -4,7 +4,7 @@
   <name>robonav_slam</name>
   <version>2.4.0</version>
   <description>RoboNav-SLAM: Autonomous LiDAR &amp; RGB-D Navigation Package for Kerala Sasthramela Robotics</description>
-  <maintainer email="labs@lekshmivilasam.edu">Lekshmivilasam Labs</maintainer>
+  <maintainer email="contact@adilitix.com">Sasthrolsavam Innovation Labs</maintainer>
   <license>Apache-2.0</license>
 
   <depend>rclpy</depend>

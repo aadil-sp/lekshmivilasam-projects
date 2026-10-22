@@ -80,4 +80,4 @@ The Magic Box controller runs a custom FreeRTOS MicroPython engine exposing the 
 *Answer:* It enables fully autonomous, decentralized operation. Motion routines and logic are flashed directly onto the Magic Box's non-volatile storage, allowing the robot to execute sorting and assembly cycles independently with single-button hardware execution, eliminating host computer dependency.
 
 ---
-*Kerala State Sasthrolsavam Project Portfolio &bull; Lekshmivilasam Robotics Division*
+*Kerala State Sasthrolsavam Project Portfolio &bull; Autonomous Robotics Division*

@@ -51,7 +51,7 @@ class MasterNumberedCanvas(canvas.Canvas):
         # Footer (Bottom of Page)
         self.line(54, 45, 612 - 54, 45)
         self.setFont("Helvetica", 8)
-        self.drawString(54, 32, "Lekshmivilasam Labs • Robotics • IoT • Electronics Master Documentation")
+        self.drawString(54, 32, "Applied Research Labs • Robotics • IoT • Electronics")
         page_str = f"Page {self._pageNumber} of {page_count}"
         self.drawRightString(612 - 54, 32, page_str)
         self.restoreState()
@@ -200,7 +200,7 @@ def build_pdf(filename):
 
     # Cover Metadata Table
     cover_meta = [
-        [Paragraph("<b>Institution:</b>", body_bold), Paragraph("Lekshmivilasam Science & Engineering Research Labs", body_style)],
+        [Paragraph("<b>Institution:</b>", body_bold), Paragraph("State Applied Engineering Research Labs", body_style)],
         [Paragraph("<b>Competition Event:</b>", body_bold), Paragraph("Kerala State Sasthrolsavam / Sasthramela 2026", body_style)],
         [Paragraph("<b>Major Disciplines:</b>", body_bold), Paragraph("1. Robotics & Artificial Intelligence<br/>2. Information & Communication Technology (IoT)<br/>3. Applied Electronics & Bio-Wearables", body_style)],
         [Paragraph("<b>Lead Microcontrollers:</b>", body_bold), Paragraph("ESP32 Dual-Core (240MHz), ESP32-C3 RISC-V, Arduino Mega/Nano", body_style)],
@@ -707,5 +707,5 @@ def build_pdf(filename):
     print(f"[OK] Master Unified Project Report PDF generated successfully at: {filename}")
 
 if __name__ == "__main__":
-    out_pdf = "/Users/aadilsp/Desktop/Antigravity/Lekshmivilasam/Kerala_State_Sasthrolsavam_Comprehensive_Project_Report.pdf"
+    out_pdf = "/Users/aadilsp/Desktop/Antigravity/Applied Innovation Labs/Kerala_State_Sasthrolsavam_Comprehensive_Project_Report.pdf"
     build_pdf(out_pdf)

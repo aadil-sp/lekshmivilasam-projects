@@ -382,7 +382,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
     </div>
 
     <footer>
-      RoboCar L298N Wi-Fi Edition &copy; 2026 Lekshmivilasam Robotics.
+      RoboCar L298N Wi-Fi Edition &copy; 2026 Applied Robotics.
     </footer>
 
   </div>

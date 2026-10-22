@@ -203,5 +203,5 @@ def generate_pdf(output_filename):
     print(f"[OK] PDF generated successfully: {output_filename}")
 
 if __name__ == "__main__":
-    out_path = "/Users/aadilsp/Desktop/Antigravity/Lekshmivilasam/dobot/Dobot_Magician_Lite_Sasthramela_Report.pdf"
+    out_path = "./dobot/Dobot_Magician_Lite_Sasthramela_Report.pdf"
     generate_pdf(out_path)

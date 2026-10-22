@@ -40,5 +40,5 @@ C. PTP Motion Modes:
 3. Real-Time Teleoperation & Camera Gesture Control
 
 ========================================================================================
-Kerala State Sasthrolsavam &bull; Lekshmivilasam Robotics Division
+Kerala State Sasthrolsavam &bull; Autonomous Robotics Division
 ========================================================================================

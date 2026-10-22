@@ -272,7 +272,7 @@ dType.RestartMagicBox(api)
             print(f"[WARN] Magic Box mount not found at {MAGIC_BOX_MOUNT}. Saving locally...")
 
         # Always save local backup
-        local_dir = os.path.expanduser("/Users/aadilsp/Desktop/Antigravity/Lekshmivilasam/dobot/src/saved_routines")
+        local_dir = os.path.expanduser("./dobot/src/saved_routines")
         os.makedirs(local_dir, exist_ok=True)
         local_file = os.path.join(local_dir, routine_name)
         with open(local_file, "w") as f:

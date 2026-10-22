@@ -434,7 +434,7 @@ dType.SetHOMECmd(api, 0, 1)
         with open(script_path, "w") as f:
             f.write(py_code)
 
-        local_dir = os.path.expanduser("/Users/aadilsp/Desktop/Antigravity/Lekshmivilasam/dobot/src/saved_routines")
+        local_dir = os.path.expanduser("./dobot/src/saved_routines")
         os.makedirs(local_dir, exist_ok=True)
         with open(os.path.join(local_dir, filename), "w") as f:
             f.write(py_code)

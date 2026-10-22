@@ -136,7 +136,7 @@ void initOLED() {
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(10, 8);
-    display.println("LEKSHMIVILASAM LABS");
+    display.println("SASTHROLSAVAM INNOVATION LABS");
     display.drawFastHLine(0, 20, 128, SSD1306_WHITE);
     display.setTextSize(2);
     display.setCursor(14, 28);

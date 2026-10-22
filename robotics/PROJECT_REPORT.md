@@ -2,7 +2,7 @@
 
 **Competition:** Kerala State School Sasthrolsavam (Sasthramela)  
 **Category:** High School / Higher Secondary Robotics & Artificial Intelligence  
-**Institution:** Lekshmivilasam Labs  
+**Institution:** Sasthrolsavam Innovation Labs  
 **Date:** September 2026  
 
 ---

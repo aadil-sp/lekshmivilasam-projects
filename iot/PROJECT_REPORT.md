@@ -113,4 +113,4 @@ Concurrently, the device measures volumetric soil moisture saturation, stream de
 *Answer:* Yes. The TinyML inference engine runs **100% on-device at the edge** on the ESP32. The local acoustic siren and visual alert LEDs trigger autonomously even without any Wi-Fi or cloud connection.
 
 ---
-*Kerala State Sasthrolsavam Project Portfolio &bull; Lekshmivilasam IoT Division*
+*Kerala State Sasthrolsavam Project Portfolio &bull; Applied IoT & Disaster Mitigation Group*

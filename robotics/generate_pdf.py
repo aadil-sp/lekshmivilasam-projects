@@ -146,7 +146,7 @@ def generate_pdf(output_filename):
     # Title Block
     story.append(Spacer(1, 10))
     story.append(Paragraph("RoboNav-SLAM: Autonomous LiDAR & Vision-Guided Indoor Navigation Robot", title_style))
-    story.append(Paragraph("Kerala State School Sasthrolsavam (Sasthramela) &bull; Lekshmivilasam Labs", subtitle_style))
+    story.append(Paragraph("Kerala State School Sasthrolsavam (Sasthramela) &bull; Sasthrolsavam Innovation Labs", subtitle_style))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#0284c7"), spaceAfter=10))
 
     # 1. Abstract

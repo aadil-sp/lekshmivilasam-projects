@@ -2,7 +2,7 @@
 
 **Category:** Robotics / Artificial Intelligence & Embedded Systems  
 **Event:** Kerala State School Sasthrolsavam (Sasthramela)  
-**Institution:** Lekshmivilasam Labs  
+**Institution:** Sasthrolsavam Innovation Labs  
 **Status:** Complete & Production Ready  
 
 ---
@@ -122,4 +122,4 @@ robotics/
 - **Circuit Schematic**: [`CIRCUIT_DIAGRAM.md`](CIRCUIT_DIAGRAM.md)
 
 ---
-*Developed with pride for the Kerala State School Sasthrolsavam (Sasthramela) by Lekshmivilasam Labs.*
+*Developed with pride for the Kerala State School Sasthrolsavam (Sasthramela) by Sasthrolsavam Innovation Labs.*

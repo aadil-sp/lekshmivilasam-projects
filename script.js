@@ -1,5 +1,5 @@
-// LVHS Project Support (lvhsprojectsupport)
-// Fast Student Assistant & Exhibition Workbench Logic
+// State Sasthrolsavam Project Support
+// Rapid Student Assistant & Exhibition Workbench Logic
 
 const pinoutDatabase = [
   { name: "Soil Moisture Sensor (Capacitive/Resistive)", project: "IoT Track", pin: "GPIO 34 (ADC1_CH6)", voltage: "3.3V or 5V", wire: "🔴 VCC: 3.3V | ⚫ GND: GND | 🟡 A0: GPIO 34", notes: "Use Analog A0 pin. Dry soil yields high raw ADC values (~3200-4095); submerged wet soil yields low values (~1100-1400)." },
@@ -205,7 +205,7 @@ const projectData = {
         </div>
         <pre class="code-block" id="iot-firmware-code">/*
  * =========================================================================
- * LVHS PROJECT SUPPORT (lvhsprojectsupport) - EXHIBITION EDITION
+ * STATE SASTHROLSAVAM PROJECT SUPPORT - EXHIBITION EDITION
  * PROJECT 1: AIoT LANDSLIDE EARLY WARNING & RAIN SIMULATION STATION
  * Microcontroller: ESP32 Dual-Core (Wi-Fi SoftAP @ 192.168.4.1)
  * =========================================================================
@@ -304,7 +304,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>LVHS AIoT Disaster Telemetry</title>
+  <title>AIoT Disaster Telemetry Station</title>
   <style>
     body{font-family:sans-serif;background:#0b1329;color:#fff;margin:0;padding:20px;text-align:center;}
     .card{background:#1a233a;border-radius:12px;padding:20px;margin:15px auto;max-width:480px;box-shadow:0 4px 15px rgba(0,0,0,0.4);}
@@ -314,7 +314,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
   </style>
 </head>
 <body>
-  <h2>🌧️ LVHS AIoT Landslide Telemetry</h2>
+  <h2>🌧️ AIoT Landslide Telemetry Station</h2>
   <div class="card">
     <div id="riskBadge" class="badge" style="background:#10b981;">NORMAL / SAFE</div>
     <div class="val" id="hazardVal">0% Hazard</div>
@@ -705,7 +705,7 @@ void loop() {
         </div>
         <pre class="code-block" id="robotics-firmware-code">/*
  * =========================================================================
- * LVHS PROJECT SUPPORT (lvhsprojectsupport) - EXHIBITION EDITION
+ * STATE SASTHROLSAVAM PROJECT SUPPORT - EXHIBITION EDITION
  * PROJECT 2: ROBONAV-SLAM AUTONOMOUS MOBILE ROBOT MOTOR CONTROLLER
  * Target: Arduino Mega / Uno / Nano (115200 Baud)
  * =========================================================================
@@ -1100,7 +1100,7 @@ void loop() {
         </div>
         <pre class="code-block" id="elec-firmware-code">/*
  * =========================================================================
- * LVHS PROJECT SUPPORT (lvhsprojectsupport) - EXHIBITION EDITION
+ * STATE SASTHROLSAVAM PROJECT SUPPORT - EXHIBITION EDITION
  * PROJECT 3: SMART HEALTH & FALL-DETECTION BIO-BAND (ESP32-C3)
  * Target: ESP32-C3 SuperMini / RISC-V (115200 Baud)
  * =========================================================================
@@ -1152,7 +1152,7 @@ void updateOLED() {
   } else {
     // Show Normal Vitals Screen
     display.setCursor(0, 0);
-    display.println("LVHS BIO-BAND v2.6");
+    display.println("SMART BIO-BAND v2.6");
     display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
 
     display.setCursor(0, 16);

@@ -2,7 +2,7 @@
 
 **Project:** Autonomous SLAM & Vision-Guided Mobile Navigation Robot  
 **Category:** Robotics / Kerala State Sasthrolsavam (Sasthramela)  
-**Institution:** Lekshmivilasam Labs  
+**Institution:** Sasthrolsavam Innovation Labs  
 
 ---
 
